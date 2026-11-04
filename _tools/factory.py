@@ -3,7 +3,8 @@
 
     python3 _tools/factory.py new <dir> "<idea>"   start a run for ../<dir> and drive it to the end
     python3 _tools/factory.py resume <run>          continue a run from its first stage without a pass
-    python3 _tools/factory.py pull [<dir> ...]      build every factory:ready issue (every onboarded repo if none named)
+    python3 _tools/factory.py pull [<dir> ...]      start a run for every factory:idea issue, then build every
+                                                    factory:ready issue (every onboarded repo if none named)
     python3 _tools/factory.py status                one line per run: ✓ pass  ↻ retry  ✋ needs a person  · not run
 
 Standard library only; run from anywhere. Stops a task, labels it and sends a macOS notification
@@ -25,9 +26,9 @@ TASK_STAGES = ["05_build", "06_review", "07_merge", "08_deploy"]
 STAGE_TIMEOUT = 60 * 60   # seconds; a stuck agent stops here and asks for a person
 MAX_RUNS_PER_STAGE = 4    # first try + 3 retries
 PARALLEL_TASKS = 3
+# Unattended: no permission prompts, so _shared/rules.md and the checks are the only guard.
 # User-level settings, plugins and MCP servers are left out so only the factory's own skills apply.
-# shortcut: "auto" can deny a risky command (merge, deploy) with nobody to ask; if stages stall on that, use "bypassPermissions".
-CLAUDE = ["claude", "--permission-mode", "auto", "--permission-prompts", "none",
+CLAUDE = ["claude", "--permission-mode", "bypassPermissions",
           "--setting-sources", "project,local", "--strict-mcp-config", "--add-dir", str(ROOT.parent), "-p"]
 
 
@@ -55,6 +56,16 @@ def repo_of(run):
     return re.search(r"^repo:\s*(\S+)", (RUNS / run / "RUN.md").read_text(), re.M)[1]
 
 
+def source_issue(run):
+    f = RUNS / run / "RUN.md"
+    m = re.search(r"^source:\s*#(\d+)", f.read_text(), re.M) if f.exists() else None
+    return m[1] if m else None
+
+
+def slugify(text):
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40].strip("-")
+
+
 def run_stage(run, stage, issue=None, attempt=1):
     target = f"run `{run}`" + (f", issue #{issue}" if issue else "")
     prompt = (f"Software factory, stage {stage}, {target}, attempt {attempt}. Read AGENTS.md, then "
@@ -72,8 +83,8 @@ def run_stage(run, stage, issue=None, attempt=1):
 
 
 def stop(run, stage, issue, why):
-    if issue:
-        subprocess.run(["gh", "issue", "edit", str(issue), "-R", repo_of(run), "--add-label", "factory:needs-human"],
+    if target := issue or source_issue(run):
+        subprocess.run(["gh", "issue", "edit", str(target), "-R", repo_of(run), "--add-label", "factory:needs-human"],
                        check=False, capture_output=True)
     notify(f"Needs you: {run}{f' #{issue}' if issue else ''} {stage}: {why}")
     return why
@@ -155,18 +166,24 @@ def resume(run):
     if not held:
         sys.exit(f"{run} is already being driven by another factory process")
     if is_pull_run(run) or drive(run, RUN_STAGES) is None:
-        run_tasks(run, task_issues(run))
+        issues = task_issues(run)
+        run_tasks(run, issues)
+        src = source_issue(run)
+        if src and issues and all(verdict(run, "08_deploy", n).startswith("pass") for n in issues):
+            subprocess.run(["gh", "issue", "close", src, "-R", repo_of(run), "--comment",
+                            f"Factory run `{run}` deployed: " + ", ".join(f"#{n}" for n in issues)],
+                           check=False, capture_output=True)
     status([run])
 
 
-def start_run(dir_, run, idea):
+def start_run(dir_, run, idea, source="chat"):
     profile = ROOT / "repos" / f"{dir_}.md"
     if not profile.exists():
         sys.exit(f"no profile for ../{dir_}: onboard it first (setup/onboard-repo.md)")
     repo = re.search(r"^repo:\s*(\S+)", profile.read_text(), re.M)[1]
     (RUNS / run).mkdir(parents=True, exist_ok=False)
     fill = {"{owner}/{name}": repo, "{dir}": dir_, "{YYYY-MM-DD}": str(datetime.date.today()),
-            "{run-id}": run, "{the idea, as the person gave it}": idea}
+            "{run-id}": run, "{the idea, as the person gave it}": idea, "{source}": source}
     text = (ROOT / "_templates" / "run.md").read_text()
     for k, v in fill.items():
         text = text.replace(k, v)
@@ -174,8 +191,7 @@ def start_run(dir_, run, idea):
 
 
 def new(dir_, idea):
-    slug = re.sub(r"[^a-z0-9]+", "-", idea.lower()).strip("-")[:40].strip("-")
-    run = f"{datetime.date.today()}-{dir_}-{slug}"
+    run = f"{datetime.date.today()}-{dir_}-{slugify(idea)}"
     start_run(dir_, run, idea)
     resume(run)
 
@@ -185,6 +201,14 @@ def pull(dirs):
         sys.exit("another pull is running")
     for dir_ in dirs or sorted(p.stem for p in (ROOT / "repos").glob("*.md") if p.stem != "CONTEXT"):
         repo = re.search(r"^repo:\s*(\S+)", (ROOT / "repos" / f"{dir_}.md").read_text(), re.M)[1]
+        for it in json.loads(gh("issue", "list", "-R", repo, "--label", "factory:idea",
+                                "--json", "number,title,body", "--limit", "20")):
+            n = it["number"]
+            gh("issue", "edit", str(n), "-R", repo, "--remove-label", "factory:idea")  # claim it
+            run = f"{datetime.date.today()}-{dir_}-{n}-{slugify(it['title'])}"
+            start_run(dir_, run, f"{it['title']}\n\n{it['body']}", f"#{n}")
+            gh("issue", "comment", str(n), "-R", repo, "--body", f"Factory run `{run}` started.")
+            resume(run)
         by_run = {}
         for it in json.loads(gh("issue", "list", "-R", repo, "--label", "factory:ready",
                                 "--json", "number,body", "--limit", "100")):

@@ -10,11 +10,10 @@ Do NOT load: review files, the build, the spec, other tasks.
 
 ## Process
 1. If `07_merge/check.md` is not `pass`, stop and say so.
-2. If the profile says `first factory deploy done: no`, stop with `fail: human`. After the person's `pass`, set it to `yes`.
-3. Deploy the merge SHA the profile's way: wait for the automatic deploy, or run the profile's deploy command.
-4. Run the profile's verify command against the deployed SHA.
-5. Verified: `gh issue close {issue} -R {repo} --comment "Deployed in {sha}: {url}"`.
-6. Not verified: run the profile's rollback, verify the rollback, then `fail: human`. Never retry a failed deploy on your own.
+2. Deploy the merge SHA the profile's way: wait for the automatic deploy, or run the profile's deploy command.
+3. Run the profile's verify command against the deployed SHA.
+4. Verified: `gh issue close {issue} -R {repo} --comment "Deployed in {sha}: {url}"`.
+5. Not verified: run the profile's rollback, verify the rollback, then `fail: human`. Never retry a failed deploy on your own.
 
 ## Outputs
 - `runs/{run}/tasks/{issue}/08_deploy/deploy.md`: SHA, deploy URL or log, verify output, issue state

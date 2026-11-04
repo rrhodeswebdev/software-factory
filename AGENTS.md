@@ -21,6 +21,7 @@ Takes an idea for any repo from brainstorm to deployed code with its GitHub issu
 |---|---|---|
 | the repo folder has no profile in `repos/` | [onboard-repo](setup/onboard-repo.md) | the person approves the profile |
 | a new idea for a repo | copy `_templates/run.md` to `runs/{YYYY-MM-DD}-{dir}-{slug}/RUN.md`, then [01_ideate](stages/01_ideate/CONTEXT.md) | 01's check |
+| an issue labelled `factory:idea` | a new run with the issue as its idea (`factory.py pull` does this), then 01 | 01's check |
 | "pull ready issues" for a repo | [05_build](stages/05_build/CONTEXT.md), pull mode | each task's 08 check |
 | a `check.md` says `pass` | the next numbered stage | its check |
 | a `check.md` says `fail: retry` | the stage that `check.md` names | its check |

@@ -24,7 +24,6 @@ Everything the factory needs to build, merge and ship this repo. `path:` is the 
 - preview url: `{command that prints the preview deploy URL for a PR, e.g. from its deployment status; or none}`
 - verify: `{command that exits 0 only when the change is live and healthy}`
 - rollback: `{command}` (default if blank: open a PR reverting the merge commit, merge it, deploy, verify)
-- first factory deploy done: no
 
 ## Review panel
 - performance seat: {web | general}

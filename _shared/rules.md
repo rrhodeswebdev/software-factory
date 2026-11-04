@@ -20,7 +20,7 @@ The target repo's own `AGENTS.md` / `CLAUDE.md` and conventions win on code styl
 - Close an issue before its change is deployed: PR bodies say `Refs #n`, never `Closes #n`.
 
 ## GitHub conventions
-- Labels (created once per repo at onboarding): `factory` (filed or opened by the factory), `factory:ready` (an issue any build agent may pick up), `factory:needs-human` (stopped at a check; see [confidence](confidence.md)).
+- Labels (created once per repo at onboarding): `factory:idea` (an idea for the schedule to turn into a full run), `factory` (filed or opened by the factory), `factory:ready` (an issue any build agent may pick up), `factory:needs-human` (stopped at a check; see [confidence](confidence.md)).
 - Issue bodies come from `_templates/issue.md`, PR bodies from `_templates/pr.md`. Both end with the run id so either side can find the other.
 
 ## Authority

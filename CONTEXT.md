@@ -34,7 +34,7 @@ runs/2026-11-03-cheergenics-team-chat/
 
 **Fan-out:** at 04 one run becomes N tasks, and 05–08 run once per task. Entering at 05 (pull mode) works for any issue labelled `factory:ready`, whether the factory filed it or a person did.
 
-**Running it:** `python3 _tools/factory.py new {dir} "{idea}"` drives a run end to end, each stage a fresh headless Claude Code process with a time limit; `resume {run}` continues one; `pull` builds every `factory:ready` issue and runs on a schedule ([setup/schedule.md](setup/schedule.md)). To shape the idea with an agent yourself, do 01 in a chat, then `resume`.
+**Running it:** `python3 _tools/factory.py new {dir} "{idea}"` drives a run end to end, each stage a fresh headless Claude Code process with a time limit; `resume {run}` continues one; `pull` turns every `factory:idea` issue into a run, builds every `factory:ready` issue, and runs on a schedule ([setup/schedule.md](setup/schedule.md)). To shape the idea with an agent yourself, do 01 in a chat, then `resume`.
 
 **Status:** a stage is done when its folder holds its output and a `check.md` whose first line is `pass`. A run is done when every task's 08 check passes.
 

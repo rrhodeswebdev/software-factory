@@ -2,6 +2,7 @@
 repo: {owner}/{name}
 profile: ../../repos/{dir}.md
 started: {YYYY-MM-DD}
+source: {source}
 ---
 # {run-id} - one run of the factory
 

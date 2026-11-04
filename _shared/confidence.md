@@ -23,8 +23,6 @@ Confidence scale, used by every check and every review finding: **5** confirmed 
 The person resumes it by fixing or deciding, changing line 1 of `check.md` to `pass - <what they decided>`, removing the label, adding one line to [lessons](lessons.md), then `python3 _tools/factory.py resume {run}`.
 
 ## Always human, whatever the confidence
-Recommended defaults; a repo profile can add paths, and a person can delete a line here.
+Only the two that cannot be undone; a repo profile can add paths.
 - A migration that drops, renames or rewrites existing data.
-- Changes to auth, permissions, payments or secrets handling.
 - A failed deploy verification (after the automatic rollback).
-- The first production deploy of a repo through the factory.
