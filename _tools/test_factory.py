@@ -50,4 +50,9 @@ assert factory.drive("r3", STAGES, None, rs) == "fail: human - retries used up"
 rs, calls = fake({"05_build": ["fail: retry - 03 issue lacks a decision"]})
 assert factory.drive("r4", STAGES, None, rs).startswith("fail: retry - 03")
 
+# an idea run knows the issue it came from; a chat run does not
+(factory.RUNS / "r5").mkdir()
+(factory.RUNS / "r5" / "RUN.md").write_text("---\nrepo: a/b\nsource: #12\n---\n")
+assert factory.source_issue("r5") == "12" and factory.source_issue("missing") is None
+
 print("ok")
