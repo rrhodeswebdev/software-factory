@@ -1,0 +1,5 @@
+.worktrees/
+.factory.lock
+runs/**/.lock
+runs/**/agent.log
+__pycache__/
