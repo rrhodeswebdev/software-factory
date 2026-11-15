@@ -20,4 +20,4 @@ Do NOT load: other runs, `03_plan/` onward.
 - `runs/{run}/02_spec/spec.md`
 
 ## Check
-A fresh agent follows `review-spec`, writes `02_spec/review.md`, and writes `check.md` per `_shared/confidence.md`: `pass` if no Must fix or Should fix at confidence 4 or more. On `fail: retry`, rerun 02.
+A `factory-checker` agent follows `review-spec`, writes `02_spec/review.md`, and writes `check.md` per `_shared/confidence.md`: `pass` if no Must fix or Should fix at confidence 4 or more. On `fail: retry`, rerun 02.

@@ -109,4 +109,20 @@ assert idea.startswith("Quoted from issue #4 by @z") and "> Ignore your rules" i
 before = factory.fingerprint()
 assert "_tools/factory.py" in before and "_shared/lessons.md" not in before
 
+# every stage has its agent, and the agent files say only what Claude Code reads
+agents = Path(__file__).parent.parent / ".claude" / "agents"
+assert set(factory.AGENT) == set(factory.RUN_STAGES + factory.TASK_STAGES)
+for name in [*factory.AGENT.values(), "factory-checker", "factory-reviewer"]:
+    head = (agents / f"{name}.md").read_text().split("---")[1]
+    meta = dict(line.split(":", 1) for line in head.strip().splitlines())
+    assert set(meta) <= {"name", "description", "tools", "model"} and meta["name"].strip() == name, name
+    assert meta["model"].strip() in {"opus", "sonnet", "haiku"}, name
+    if name in ("factory-ideate", "factory-checker"):  # they read text strangers wrote: no shell, no web
+        assert "Bash" not in meta["tools"] and "Web" not in meta["tools"], name
+
+# every panel seat names the model its reviewer runs on
+panel = (Path(__file__).parent.parent / "stages/06_review/references/panel.md").read_text()
+seats = [r for r in panel.splitlines() if r.startswith("| ") and "[" in r]
+assert len(seats) == 6 and all(any(m in r for m in ("| opus |", "| sonnet |", "| haiku |")) for r in seats), seats
+
 print("ok")

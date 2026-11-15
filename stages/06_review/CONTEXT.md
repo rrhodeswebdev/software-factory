@@ -12,7 +12,7 @@ Do NOT load: `05_build/` beyond `build.md`, earlier attempts' review files, othe
 ## Process
 1. If `05_build/check.md` is not `pass`, stop and say so.
 2. Pick the seats from `references/panel.md`.
-3. Launch every seat in parallel as a fresh agent following `review-code` with its lens. Each writes `06_review/{seat}.md`.
+3. Launch every seat in parallel, in one message, as a `factory-reviewer` agent with the seat's model from `panel.md`. Each follows `review-code` with its lens and writes `06_review/{seat}.md`.
 4. Merge their findings into `verdict.md`: line 1 is the head SHA reviewed, then findings deduped and ordered Must, Should, Could.
 5. Post it as one PR comment: `gh pr comment {pr} -R {repo} --body-file verdict.md`.
 

@@ -12,7 +12,8 @@ Takes an idea for any repo from brainstorm to deployed code with its GitHub issu
 | `skills/` | the factory's own skills, the how of each stage: [catalog](skills/CONTEXT.md) |
 | `_shared/` | rules every stage reads: [rules](_shared/rules.md), [confidence gate](_shared/confidence.md) |
 | `_templates/` | starters for a run, a repo profile, an issue and a PR |
-| `_tools/` | `factory.py` runs stages as fresh agents, retries and notifies; `links.py` checks links and input paths |
+| `.claude/agents/` | one agent per stage, plus `factory-checker` and `factory-reviewer`: each sets its model and tools |
+| `_tools/` | `factory.py` runs each stage as its agent, retries and notifies; `links.py` checks links and input paths |
 | `setup/` | [onboard a repo](setup/onboard-repo.md), [run it on a schedule](setup/schedule.md) |
 
 ## Route by what just happened
@@ -34,7 +35,7 @@ Takes an idea for any repo from brainstorm to deployed code with its GitHub issu
 
 ## How to run a stage
 
-Use only the factory's own `skills/`, nothing installed elsewhere. Give a fresh agent only the stage's `CONTEXT.md`, the run id, and for stages 05–08 the issue number. The orchestrating agent reads nothing but the first line of each `check.md`. Stages 01–04 run once per run; 05–08 run once per task, independent tasks in parallel, dependent tasks in order.
+Use only the factory's own `skills/` and `.claude/agents/`, nothing installed elsewhere. Run the stage as its agent (`factory-ideate` … `factory-deploy`, mapped in `_tools/factory.py`), and give it only the stage's `CONTEXT.md`, the run id, and for stages 05–08 the issue number. The orchestrating agent reads nothing but the first line of each `check.md`. Stages 01–04 run once per run; 05–08 run once per task, independent tasks in parallel, dependent tasks in order.
 
 ## The one rule
 

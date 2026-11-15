@@ -24,4 +24,4 @@ An issue run (`source: #n` in `RUN.md`) has two more verdicts, used only here (`
 - `reject - <why>` when, at confidence 4 or more, this should not be built: it is outside what the repo is for, harmful or abusive, already done, or a duplicate. The runner posts the why on the issue.
 - `wait: author - <one line>` when a question only the issue's author can answer would change what gets built. Write `questions.md` first: each question with your recommended answer, short enough to read on GitHub.
 
-If the person is in the conversation, their go-ahead is the pass: write `pass`, confidence 5. Otherwise a fresh agent reads `idea.md` and answers: could a designer spec this without a question that changes behavior? It writes `check.md` per `_shared/confidence.md`. On `fail: retry`, rerun 01.
+If the person is in the conversation, their go-ahead is the pass: write `pass`, confidence 5. Otherwise a `factory-checker` agent reads `idea.md` and answers: could a designer spec this without a question that changes behavior? It writes `check.md` per `_shared/confidence.md`. On `fail: retry`, rerun 01.

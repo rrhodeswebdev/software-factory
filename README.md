@@ -39,7 +39,24 @@ flowchart TB
   TASK -. "not confident" .-> H
 ```
 
-Each stage is a fresh, headless Claude Code process that follows one contract in `stages/` and one skill in `skills/`. It writes its output plus a `check.md` whose first line is the verdict:
+Each stage is a fresh, headless Claude Code process running as that stage's agent from `.claude/agents/`. The agent sets the model and the tools; the contract in `stages/` and the skill in `skills/` say what to do.
+
+| Agent | Stage | Model | Tools |
+|---|---|---|---|
+| `factory-ideate` | 01 | Opus | files + agents. No shell or web, since ideas can come from anyone's issue. |
+| `factory-spec` | 02 | Opus | files, shell, agents |
+| `factory-plan` | 03 | Opus | files, shell, agents |
+| `factory-issues` | 04 | Sonnet | files, shell |
+| `factory-builder` | 05 | Opus | everything: tests, dev server, browser |
+| `factory-review` | 06 | Sonnet | chairs the panel: launches the reviewers, merges their findings |
+| `factory-reviewer` | 06 seat | per seat: Opus for correctness and security, Sonnet for the rest | read-only files, shell |
+| `factory-merge` | 07 | Sonnet | files, shell |
+| `factory-deploy` | 08 | Sonnet | files, shell |
+| `factory-checker` | checks at 01–03 | Opus | read files, write its verdict. No shell or web. |
+
+The agent that does the work never checks it: stages 01–03 hand their check to `factory-checker`, and 06's chair never reviews code itself. To change a model or a tool, edit the agent's file.
+
+Each stage writes its output plus a `check.md` whose first line is the verdict:
 
 | Verdict | What happens |
 |---|---|
@@ -123,6 +140,7 @@ Start with a small issue and read every PR until you trust it.
 | [`AGENTS.md`](AGENTS.md) | Routing: what to do after each event |
 | [`CONTEXT.md`](CONTEXT.md) | The pipeline on one screen and the shape of a run folder |
 | `stages/` | The eight stage contracts: inputs, process, outputs, check |
+| `.claude/agents/` | One agent per stage, plus the checker and the reviewer: model and tools |
 | `skills/` | How each stage does its work, including six review lenses |
 | `_shared/` | Rules every stage obeys, the confidence gate, lessons |
 | `_templates/` | Starters for a run, a repo profile, an issue and a PR |

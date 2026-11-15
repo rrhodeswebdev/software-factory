@@ -18,4 +18,4 @@ Do NOT load: `01_ideate/`, other runs, the issue or PR templates.
 - `runs/{run}/03_plan/tasks.md`
 
 ## Check
-A fresh agent confirms: every `AC-n` lands in exactly one task and every `INV-n` is cited where it could break; no task needs a decision the spec lacks; each task fits one reviewable PR; dependencies have no cycle. It writes `check.md` per `_shared/confidence.md`. A split problem is `fail: retry - 03`; a missing decision is `fail: retry - 02`.
+A `factory-checker` agent confirms: every `AC-n` lands in exactly one task and every `INV-n` is cited where it could break; no task needs a decision the spec lacks; each task fits one reviewable PR; dependencies have no cycle. It writes `check.md` per `_shared/confidence.md`. A split problem is `fail: retry - 03`; a missing decision is `fail: retry - 02`.
