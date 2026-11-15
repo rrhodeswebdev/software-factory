@@ -26,6 +26,8 @@ Takes an idea for any repo from brainstorm to deployed code with its GitHub issu
 | a `check.md` says `pass` | the next numbered stage | its check |
 | a `check.md` says `fail: retry` | the stage that `check.md` names | its check |
 | a `check.md` says `fail: human` | stop that task, report the why | a person edits `check.md` |
+| a person gives notes on a stopped run or task | `python3 _tools/factory.py feedback {run} [{issue}] "{notes}"` | the stage's next check |
+| a person drops a run or task | `python3 _tools/factory.py reject {run} [{issue}] "{why}"` | done |
 | asked for status | `python3 _tools/factory.py status` | report what exists |
 | asked to improve the factory | [lessons](_shared/lessons.md): fold each line into its skill or rule, then delete it | the person reviews the diff |
 | resuming a run | the first stage folder in the run without a passing `check.md` | its check |

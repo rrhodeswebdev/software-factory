@@ -1,6 +1,6 @@
 # Schedule - pull ready issues every 30 minutes
 
-One job: run `python3 _tools/factory.py pull` on a timer. In every onboarded repo, an issue labelled `factory:idea` becomes a full run from brainstorm to deploy (the idea issue closes when every task is deployed), and an issue labelled `factory:ready` gets built, reviewed, merged and deployed.
+One job: run `python3 _tools/factory.py pull` on a timer. In every onboarded repo, an issue labelled `factory:idea` becomes a full run from brainstorm to deploy (the idea issue closes when every task is deployed), and an issue labelled `factory:ready` gets built, reviewed, merged and deployed. A run waiting on its author (`factory:needs-info`) resumes on the first pull after they reply.
 
 ## Turn it on
 ```

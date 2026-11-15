@@ -4,7 +4,8 @@ One job: turn one issue into one PR with green CI and proof for every criterion.
 
 ## Inputs
 - Working (this run): the issue, `gh issue view {issue} -R {repo}`
-- Working (on retry): `runs/{run}/tasks/{issue}/06_review/verdict.md` and the latest `check.md` that sent it back
+- Working (on retry): `runs/{run}/tasks/{issue}/06_review/verdict.md` and the latest `check.md` that sent it back. That can be this stage's own `check.md`, rewritten by the runner when the PR touched a protected path: revert those files.
+- Working (on feedback): `runs/{run}/tasks/{issue}/05_build/feedback-*.md`, a person's notes, newest last
 - Reference (every run): `skills/build-task/SKILL.md`, `skills/prove-task/SKILL.md`
 - Reference (every run): the repo profile that `runs/{run}/RUN.md` links to, `_shared/rules.md`, `_shared/confidence.md`, `_templates/pr.md`
 

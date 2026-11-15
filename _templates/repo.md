@@ -29,5 +29,9 @@ Everything the factory needs to build, merge and ship this repo. `path:` is the 
 - performance seat: {web | general}
 - accessibility seat: {yes | no}
 
+## Protected paths
+Files no factory PR may change, on top of `.github/workflows/` and `.env` files. The runner sends a PR that touches one back to 05. fnmatch patterns, so `*` also matches `/`.
+- {e.g. `packages/auth/*`, `infra/*`; or none}
+
 ## Always human (adds to `_shared/confidence.md`)
 - paths: {e.g. `packages/auth/**`, `**/migrations/**`}
