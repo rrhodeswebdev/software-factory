@@ -44,7 +44,7 @@ INTAKE_TOOLS = ["--tools", "Read,Grep,Glob,Write,Edit"]
 # fnmatch patterns, so * also matches /.
 PROTECTED = [".github/workflows/*", "*.env", "*/.env.*", ".env.*"]
 # The factory's own instructions and tools. No stage may change them; people edit them by hand.
-GUARDED = ["AGENTS.md", "CLAUDE.md", "CONTEXT.md", ".claude", "_shared", "_templates", "_tools", "repos",
+GUARDED = ["AGENTS.md", "CLAUDE.md", "CONTEXT.md", "README.md", "LICENSE", ".claude", "_shared", "_templates", "_tools", "repos",
            "setup", "skills", "stages"]
 UNGUARDED = {"_shared/lessons.md"}  # people append here while runs go on
 ASKED = "<!-- factory:question -->"  # marks the factory's questions so replies after one can be found
