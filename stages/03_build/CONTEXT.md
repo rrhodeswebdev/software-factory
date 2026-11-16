@@ -18,8 +18,8 @@ Do NOT load: other tasks, triage notes the spec already absorbed.
 3. Build the smallest change that meets every AC and keeps every INV. Follow the repo's own guide.
 4. Prove each AC with a test that would fail if the behavior broke; run it and keep the output. For `UI: yes`, also start the dev server and check the change in a real browser if you have one; record what you saw.
 5. Run the profile's lint, typecheck, test and build commands until they pass.
-6. Commit with clear messages ending `Refs #{issue}`. Push: `git push -u origin {branch}`. Never push to the base branch.
-7. No PR yet: `gh pr create --draft --base {base} --head {branch}` with a title naming the change and a body from `_templates/pr.md`. A PR already open: push to it and update its body's Proof table.
+6. Commit with [Conventional Commit](../../_shared/rules.md) messages (`feat(404): link each home section`), each ending `Refs #{issue}`. Push: `git push -u origin {branch}`. Never push to the base branch.
+7. No PR yet: `gh pr create --draft --base {base} --head {branch}` with a Conventional Commit title naming the change (`fix(nav): ...`; `feat` only for something a user can now do) and a body from `_templates/pr.md`. A PR already open: push to it and update its body's Proof table.
 
 ## Outputs
 - The pushed branch and the draft PR.
@@ -29,3 +29,12 @@ Do NOT load: other tasks, triage notes the spec already absorbed.
 
 ## Check
 04_preflight reruns every command on the pushed commit, and 05_review reads the diff against the spec. The builder never judges its own work final.
+
+## A release task
+`kind: release` in `TASK.md`: the PR ships the default branch to `{base}`, the profile's `release_branch`. There is no spec; every change in it was reviewed on its way into the default branch. Instead of Process steps 1 to 5:
+1. Read the profile's `## Release` and the repo's own release guide. The profile has no `release_branch`, or the issue title names no version: `fail: human - <what's missing>`.
+2. The issue names a `Source:` SHA (`factory.py release` writes it): on the first attempt, `git reset --hard <sha>` so the release ships exactly what its version was counted from; newer work waits for the next release. Nothing to ship (`git log origin/{base}..HEAD` is empty): `fail: human - nothing to release`.
+3. Make the release commit exactly as `## Release` says (its `release files`: a version bump, a changelog), and nothing else. Run the profile's lint and build.
+4. Commit with the repo's release message (`chore(release): {version}` if its guide names none) ending `Refs #{issue}`, push, and open the PR as in step 7 with base `{base}`. Its body lists what ships (`git log --no-merges --format='- %s' origin/{base}..HEAD`) and says merging deploys to production.
+
+`build.md` holds the PR line, the head SHA, the version and the list of what ships; there is no AC table.

@@ -23,6 +23,7 @@ A personal factory that takes GitHub issues labelled `factory` in any onboarded 
 |---|---|---|
 | a repo folder has no profile in `repos/` | the [onboard-repo](skills/onboard-repo/SKILL.md) skill | the person approves the profile |
 | a person has a task in mind | the [new-task](skills/new-task/SKILL.md) skill, or `python3 _tools/factory.py new {dir} "{title}" "{details}"` | the issue exists |
+| a person wants to ship to production | `/factory release {dir}` | the release issue exists |
 | "work on tasks", start, stop or check the factory | the [factory](skills/factory/SKILL.md) skill (`/factory start`) | each task's last check |
 | a task stopped for a person | the [unblock](skills/unblock/SKILL.md) skill | the person's choice is applied |
 | asked what is happening | `/factory status`, or `/factory dashboard` | report what exists |

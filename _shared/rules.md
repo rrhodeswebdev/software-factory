@@ -16,6 +16,7 @@ Read by every agent before its stage contract. The runner runs agents unattended
 - Follow the repo's own guide (`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`) and its profile in `repos/`. Use the commands the profile names; never invent one.
 - The smallest change that fully does the task. Reuse what the repo already has.
 - Every claim needs evidence: a command and its output, or a `file:line`.
+- Every commit message and PR title is a [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/): `type(scope): summary`, lower-case imperative, no period. Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`; a breaking change adds `!` (`feat(api)!: ...`) and a `BREAKING CHANGE:` footer. A squash merge makes the PR title the commit, and releases count versions from these. The repo's own convention wins where it is stricter.
 
 ## Your verdict
 Write `check.md` in your stage folder. Its first line is exactly one of these, and the runner routes on it:

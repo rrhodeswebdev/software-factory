@@ -6,6 +6,8 @@ description: Turns a request into one or more well-formed factory tasks (GitHub 
 
 A task is a GitHub issue labelled `factory`. The better it says what done looks like, the less triage and spec have to guess.
 
+A release (ship the default branch to production) isn't written by hand: run the [factory](../factory/SKILL.md) skill's `release` row.
+
 1. **Which repo.** Match the person's words to a profile in `repos/`. None fits: offer the [onboard-repo](../onboard-repo/SKILL.md) skill first.
 2. **Understand it.** If the ask is unclear about what done looks like, ask one question at a time, each with your recommended answer. Stop asking once you could write the "Done when" lines.
 3. **One PR each.** Work bigger than about 400 changed lines, or two concerns at once, becomes several tasks. Order them, and give each later one `Depends on: #n`.

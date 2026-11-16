@@ -189,7 +189,7 @@ function render(s) {
   const cols = [["queued", "Queued"], ...s.stages.map((st) => [st, st.slice(3)]), ["done", "Done"]];
   const columnOf = (t) => {
     if (t.state === "done" || t.state === "rejected") return "done";
-    if (t.state === "todo" && t.stage === s.stages[0] && !t.stages[0].verdict) return "queued";
+    if (t.state === "todo" && t.stage === t.stages[0].name && !t.stages[0].verdict) return "queued";
     return t.stage;
   };
   $("board").replaceChildren(...cols.map(([key, name]) => {
