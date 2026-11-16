@@ -33,7 +33,7 @@ Do NOT load: other tasks, triage notes the spec already absorbed.
 ## A release task
 `kind: release` in `TASK.md`: the PR ships the default branch to `{base}`, the profile's `release_branch`. There is no spec; every change in it was reviewed on its way into the default branch. Instead of Process steps 1 to 5:
 1. Read the profile's `## Release` and the repo's own release guide. The profile has no `release_branch`, or the issue title names no version: `fail: human - <what's missing>`.
-2. Nothing to ship (`git log origin/{base}..HEAD` is empty): `fail: human - nothing to release`.
+2. The issue names a `Source:` SHA (`factory.py release` writes it): on the first attempt, `git reset --hard <sha>` so the release ships exactly what its version was counted from; newer work waits for the next release. Nothing to ship (`git log origin/{base}..HEAD` is empty): `fail: human - nothing to release`.
 3. Make the release commit exactly as `## Release` says (its `release files`: a version bump, a changelog), and nothing else. Run the profile's lint and build.
 4. Commit with the repo's release message (`chore(release): {version}` if its guide names none) ending `Refs #{issue}`, push, and open the PR as in step 7 with base `{base}`. Its body lists what ships (`git log --no-merges --format='- %s' origin/{base}..HEAD`) and says merging deploys to production.
 

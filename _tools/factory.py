@@ -513,14 +513,15 @@ def new(dir_, title, body=""):
               "--label", LABEL).strip()
 
 
-def next_version(tag, subjects):
-    """Semver bump from conventional commit subjects since the last tag: `!:` major, `feat` minor, else patch."""
+def next_version(tag, messages):
+    """Semver bump from conventional commit messages since the last tag: `!:` or a `BREAKING CHANGE:` footer
+    major, `feat` minor, else patch."""
     if not re.fullmatch(r"v?\d+\.\d+\.\d+", tag):
         raise ValueError(f"last tag {tag!r} isn't semver; name the version")
     major, minor, patch = map(int, tag.lstrip("v").split("."))
-    if any(re.match(r"\w+(\([^)]*\))?!:", s) for s in subjects):
+    if any(re.match(r"\w+(\([^)]*\))?!:", s) or re.search(r"^BREAKING[ -]CHANGE:", s, re.M) for s in messages):
         return f"{major + 1}.0.0"
-    if any(re.match(r"feat(\([^)]*\))?:", s) for s in subjects):
+    if any(re.match(r"feat(\([^)]*\))?:", s) for s in messages):
         return f"{major}.{minor + 1}.0"
     return f"{major}.{minor}.{patch + 1}"
 
@@ -533,18 +534,19 @@ def release(dir_, version=None):
     if p["release"] == "none":
         raise ValueError(f"repos/{dir_}.md has no release_branch; the factory can't release this repo")
     sh("git", "-C", repo, "fetch", "--tags", "origin")
-    subjects = sh("git", "-C", repo, "log", "--no-merges", "--format=%s",
-                  f"origin/{p['release']}..origin/{p['base']}").splitlines()
-    if not subjects:
+    source = sh("git", "-C", repo, "rev-parse", f"origin/{p['base']}").strip()
+    messages = [m.strip() for m in sh("git", "-C", repo, "log", "--no-merges", "--format=%B%x00",
+                                      f"origin/{p['release']}..{source}").split("\0") if m.strip()]
+    if not messages:
         raise ValueError(f"nothing to release: {p['base']} has nothing {p['release']} lacks")
     tag = subprocess.run(["git", "-C", repo, "describe", "--tags", "--abbrev=0", f"origin/{p['release']}"],
                          capture_output=True, text=True).stdout.strip()
     if not version and not tag:
         raise ValueError(f"no tag on {p['release']} to count from; name the version")
-    version = (version or next_version(tag, subjects)).lstrip("v")
+    version = (version or next_version(tag, messages)).lstrip("v")
     ensure_labels(p["repo"])
     body = (f"Ship everything on `{p['base']}` since {tag or 'the start'} to `{p['release']}` (production).\n\n"
-            + "\n".join(f"- {s}" for s in subjects))
+            + "\n".join(f"- {m.splitlines()[0]}" for m in messages) + f"\n\nSource: {source}")
     return gh("issue", "create", "-R", p["repo"], "--title", f"Release {version}", "--body", body,
               "--label", f"{LABEL},{RELEASE}").strip()
 

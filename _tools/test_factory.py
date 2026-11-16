@@ -151,6 +151,7 @@ class ReleaseTest(Base):
         self.assertEqual(F.next_version("v0.7.0", ["fix: a", "chore(deps): b"]), "0.7.1")
         self.assertEqual(F.next_version("v0.7.3", ["fix: a", "feat(404): b"]), "0.8.0")
         self.assertEqual(F.next_version("0.7.3", ["feat!: drop x", "feat: y"]), "1.0.0")
+        self.assertEqual(F.next_version("v1.2.3", ["fix: parser\n\nBREAKING CHANGE: new format"]), "2.0.0")
         with self.assertRaises(ValueError):  # calver and the like: the person names the version
             F.next_version("2026.11", ["feat: a"])
 

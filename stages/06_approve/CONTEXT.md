@@ -25,10 +25,10 @@ Do NOT load: other tasks, the lens files.
 5. Append your handoff, stop.
 
 ## A release task
-`kind: release` in `TASK.md`: walk the gate's `## Release` items instead of its numbered ones (there is no `05_review`). When every one holds, and the PR isn't already merged, merge it as in step 4. Releases differ per repo: what follows the merge is the profile's `## Release`, nothing else.
-1. **Deploy**: if it names one, follow the run the merge started to the end (`gh run list --workflow <deploy> --commit <sha>`, then `gh run watch <id> --exit-status`; give up after 30 minutes). Failed or never started: `fail: human - deploy failed on <sha>: <run URL>`, saying what production may now be running.
+`kind: release` in `TASK.md`: walk the gate's `## Release` items instead of its numbered ones (there is no `05_review`). When every one holds, and the PR isn't already merged, merge it as in step 4 with two differences: always `--merge` (a merge commit), whatever `merge_method` says, because the next release counts what ships from the release branch's ancestry and a squash or rebase loses it (merge commits not allowed in the repo: `fail: human`); and leave the issue open, since it closes only in step 3 below. Releases differ per repo: what follows the merge is the profile's `## Release`, nothing else.
+1. **Deploy**: if it names one, follow the run the merge started to the end. Its SHA is the merge commit (`gh pr view <PR> --json mergeCommit -q .mergeCommit.oid`), not the PR head (`gh run list --workflow <deploy> --commit <merge sha>`, then `gh run watch <id> --exit-status`; give up after 30 minutes). Failed or never started: `fail: human - deploy failed on <merge sha>: <run URL>`, saying what production may now be running.
 2. **After merge**: do its steps in order, skipping any already done (a retry or a person's feedback resumes here). A step that fails, or one you can't do exactly as written: `fail: human - <step>: <why>`. Merging any PR a step opens (a sync back, say) needs its required checks green first.
-3. Close the issue with what shipped and where. `pass - released {version} at <sha>`.
+3. Only now close the issue, with what shipped and where. `pass - released {version} at <merge sha>`.
 
 ## Outputs
 - `tasks/{id}/06_approve/approval.md`: the gate, item by item, with evidence; the merge commit or the PR comment you left.
