@@ -108,6 +108,53 @@ class DriveTest(Base):
         self.assertEqual(F.back_to("fail: retry - x", 3), 3)
 
 
+class ReleaseTest(Base):
+    def make_release(self):
+        t = self.t.parent / "site-8"
+        F.create(t, "site", {"repo": "me/site", "base": "develop", "release": "main", "head": "release/{version}"},
+                 {"number": 8, "title": "Release 1.2.0", "url": "u", "labels": [{"name": F.RELEASE}]})
+        return t
+
+    def test_issue_becomes_release_card(self):
+        m = F.meta(self.make_release())
+        self.assertEqual((m["kind"], m["base"], m["branch"]), ("release", "main", "release/1.2.0"))
+        self.assertEqual(F.meta(self.t)["kind"], None)
+        t = self.t.parent / "site-9"
+        F.create(t, "site", {"repo": "me/site", "base": "main", "release": "main", "head": "rel-{version}"},
+                 {"number": 9, "title": "Release v2026.11", "url": "u", "labels": [{"name": F.RELEASE}]})
+        self.assertEqual(F.meta(t)["branch"], "rel-2026.11")  # each repo names and numbers its own  # cards from before releases stay ordinary tasks
+
+    def test_release_runs_only_build_preflight_approve(self):
+        t = self.make_release()
+        self.assertEqual(F.state(t), ("todo", "03_build", ""))
+        calls = []
+
+        def run(t_, s, attempt):
+            calls.append(s)
+            v = "fail: retry 03 - bump" if s == "04_preflight" and calls.count(s) == 1 else "pass"
+            (t_ / s).mkdir(exist_ok=True)
+            (t_ / s / "check.md").write_text(v + "\n")
+            return v
+        self.assertEqual(F.drive(t, run), "done")
+        self.assertEqual(calls, ["03_build", "04_preflight", "03_build", "04_preflight", "06_approve"])
+
+    def test_merged_release_pr_waits_for_a_person(self):
+        t = self.make_release()
+        (t / "03_build").mkdir()
+        (t / "03_build" / "build.md").write_text("PR: https://github.com/me/site/pull/9\n")
+        with mock.patch.object(F, "gh", return_value='{"state": "MERGED"}'), mock.patch.object(F, "finish") as fin:
+            F.reconcile(t)
+            fin.assert_not_called()
+        self.assertFalse((t / "06_approve" / "check.md").exists())
+
+    def test_next_version(self):
+        self.assertEqual(F.next_version("v0.7.0", ["fix: a", "chore(deps): b"]), "0.7.1")
+        self.assertEqual(F.next_version("v0.7.3", ["fix: a", "feat(404): b"]), "0.8.0")
+        self.assertEqual(F.next_version("0.7.3", ["feat!: drop x", "feat: y"]), "1.0.0")
+        with self.assertRaises(ValueError):  # calver and the like: the person names the version
+            F.next_version("2026.11", ["feat: a"])
+
+
 class ParseTest(Base):
     def test_deps(self):
         self.assertEqual(F.deps("Fix it.\n\nDepends on: #12, #14 and #3"), ["12", "14", "3"])

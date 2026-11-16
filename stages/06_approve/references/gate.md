@@ -20,3 +20,13 @@ The approver's checklist. Every item must hold. Items marked ◆ are judgment: a
 
 ## When unsure
 Ask. A person costs minutes; a bad merge costs a revert, an incident or lost data. Never merge to clear the queue.
+
+## Release
+For a `kind: release` task, these replace items 1 to 12. All are hard.
+- R1. `auto_merge: true` in the repo profile, or a person approved this release in `history.md`.
+- R2. The PR is open, targets the profile's `release_branch`, its head branch was cut from the default branch (or wherever the profile's `## Release` says), and it is not `CONFLICTING`.
+- R3. The PR head SHA is the SHA `04_preflight` passed, and `04_preflight/check.md` starts `pass`.
+- R4. Every required CI check on that SHA is green.
+- R5. The only commits on the branch that aren't on the default branch are the release commit(s), and they touch only the release files the profile's `## Release` names. Everything else shipping is already there.
+- R6. The profile's `## Release` says how a merge reaches production (`deploy`, or `none`) and what follows it (`after merge`), so the release can be finished, not just merged.
+- R7. Every check under its `before merge` holds.

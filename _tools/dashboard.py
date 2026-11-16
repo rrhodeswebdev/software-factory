@@ -76,7 +76,7 @@ def task_info(t):
     events = [ln[2:] for ln in hist.read_text().splitlines() if ln.startswith("- ")] if hist.exists() else []
     return {"id": t.name, "repo": m["repo"], "issue": m["issue"], "title": m["title"], "url": m["url"],
             "pr": F.pr_of(t), "state": st, "stage": stage, "verdict": v,
-            "stages": [{"name": s, "verdict": F.verdict(t, s)} for s in F.STAGES],
+            "stages": [{"name": s, "verdict": F.verdict(t, s)} for s in F.stages(t)],
             "agents": agents, "last": events[-1] if events else "",
             "updated": hist.stat().st_mtime if hist.exists() else 0}
 
@@ -101,7 +101,7 @@ def detail(task_id):
     if not re.fullmatch(r"[\w.-]+", task_id) or not (t / "TASK.md").exists():
         return None
     files = {}
-    for name in ["history.md", *(f"{s}/check.md" for s in F.STAGES)]:
+    for name in ["history.md", *(f"{s}/check.md" for s in F.stages(t))]:
         if (t / name).exists():
             files[name] = (t / name).read_text()
     return {"id": task_id, "files": files}

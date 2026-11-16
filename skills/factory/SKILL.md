@@ -1,6 +1,6 @@
 ---
 name: factory
-description: Runs the factory's scripts so the person never has to remember them. Use for "/factory start", "stop", "status", "pull", "dashboard", "check", or any ask to start, stop, run, watch or show the factory.
+description: Runs the factory's scripts so the person never has to remember them. Use for "/factory start", "stop", "status", "pull", "release", "dashboard", "check", or any ask to start, stop, run, watch or show the factory.
 ---
 # factory - run the factory's scripts
 
@@ -14,6 +14,7 @@ Map what the person asked to one row and run its command from the factory root. 
 | `stop` | `pkill -f "_tools/factory.py watch"; pkill -f "_tools/dashboard.py"` | Agents already running finish their current stage on their own; nothing new starts. |
 | `status` | `python3 _tools/factory.py status`, plus whether `watch` and the dashboard are running (`pgrep -f`) | the lines in plain words: what's running, queued, waiting on them, merged |
 | `pull` [repo ...] | `python3 _tools/factory.py pull {repos}` in the background (it can run for an hour); report when it ends | "Working {repos or every repo}'s open `factory` issues once." |
+| `release` {dir} [version] | `python3 _tools/factory.py release {dir} {version}` (no version: it picks a semver bump from the commit messages, only when the last tag is `vX.Y.Z`; otherwise ask the person for the version per the profile's `## Release`) | the issue URL and the version; that `watch` (or `pull`) releases it the way that repo's profile `## Release` says: merge into `release_branch`, follow the deploy, then its after-merge steps. The repo's profile needs `release_branch`. |
 | `check` | `python3 -m unittest _tools/test_factory.py` and `python3 -I _tools/links.py` | pass, or what failed |
 
 Other asks have their own skills: new tasks are [new-task](../new-task/SKILL.md), stopped tasks (feedback, approve, reject) are [unblock](../unblock/SKILL.md), adding a repo is [onboard-repo](../onboard-repo/SKILL.md).

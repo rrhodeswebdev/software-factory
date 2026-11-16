@@ -25,6 +25,9 @@ merged PR, issue closed
 | 05 | [review](stages/05_review/CONTEXT.md) | `panel.md`, `<lens>.md` per seat |
 | 06 | [approve](stages/06_approve/CONTEXT.md) | `approval.md`, the merge |
 
+## Releases
+An issue labelled `factory:release` too (filed by `python3 _tools/factory.py release {dir}`) ships the default branch to the profile's `release_branch`. It runs only `03_build` (version bump, PR), `04_preflight` and `06_approve`, which merges against the gate's `## Release` items, then follows the deploy and does the after-merge steps. Each repo releases its own way: the recipe is its profile's `## Release`, never the contracts. Every change in it was reviewed on its way into the default branch.
+
 ## Routing
 - `pass`: the next stage runs.
 - `fail: retry NN`: stage `NN` runs again with the reason in `history.md`; later stages rerun after it. A stage that runs three times without a pass stops for a person.

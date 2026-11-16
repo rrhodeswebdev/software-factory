@@ -3,6 +3,7 @@
 Each stage runs as a fresh headless Claude Code process, as that stage's agent in .claude/agents/.
 
     python3 _tools/factory.py new <dir> "<title>" ["<details>"]     file a task (a GitHub issue labelled factory)
+    python3 _tools/factory.py release <dir> [<version>]   file a release task: ship the default branch to production
     python3 _tools/factory.py pull [<dir> ...]     drive every open factory issue as far as it goes, then exit
     python3 _tools/factory.py watch [<minutes>]    pull every <minutes> (default 5) forever; new work starts at once
     python3 _tools/factory.py status               one line per task
@@ -27,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TASKS, REPOS, TREES, LOCKS = ROOT / "tasks", ROOT / "repos", ROOT / ".worktrees", ROOT / ".locks"
 STAGES = ["01_triage", "02_spec", "03_build", "04_preflight", "05_review", "06_approve"]
+RELEASE_STAGES = ["03_build", "04_preflight", "06_approve"]  # every change in a release was reviewed on its way in
 AGENT = {"01_triage": "factory-triage", "02_spec": "factory-spec", "03_build": "factory-builder",
          "04_preflight": "factory-preflight", "06_approve": "factory-approver"}  # 05 is a panel: see review()
 LENSES = ROOT / "stages/05_review/lenses"
@@ -42,7 +44,9 @@ CLAUDE = ["claude", "--permission-mode", "bypassPermissions", "--setting-sources
 GUARDED = ["AGENTS.md", "CLAUDE.md", "CONTEXT.md", "README.md", ".claude", "_shared", "_templates", "_tools",
            "repos", "setup", "skills", "stages"]
 LABEL, WORKING, HUMAN, REJECTED = "factory", "factory:working", "factory:needs-human", "factory:rejected"
+RELEASE = "factory:release"
 LABELS = {LABEL: ("5319e7", "Work for the software factory"), WORKING: ("fbca04", "The factory is on it"),
+          RELEASE: ("0e8a16", "Ship the default branch to production"),
           HUMAN: ("d93f0b", "The factory stopped and needs a person"), REJECTED: ("cccccc", "The factory won't build this")}
 
 
@@ -81,12 +85,18 @@ def verdict(t, stage):
 
 def meta(t):
     text = (t / "TASK.md").read_text()
-    return {k: field(text, k) for k in ("repo", "dir", "issue", "title", "url", "branch", "base")}
+    return {k: field(text, k) for k in ("repo", "dir", "issue", "title", "url", "branch", "base", "kind")}
 
 
 def profile(dir_):
     text = (REPOS / f"{dir_}.md").read_text()
-    return {"repo": field(text, "repo"), "base": field(text, "default_branch")}
+    return {"repo": field(text, "repo"), "base": field(text, "default_branch"),
+            "release": field(text, "release_branch") or "none",
+            "head": field(text, "release_head") or "release/{version}"}
+
+
+def stages(t):
+    return RELEASE_STAGES if meta(t)["kind"] == "release" else STAGES
 
 
 def all_dirs():
@@ -145,19 +155,20 @@ def state(t):
     """(state, stage, verdict). state: done, rejected, human (stopped for a person) or todo (stage runs next)."""
     if (t / "rejected.md").exists():
         return "rejected", None, first_line(t / "rejected.md")
-    if verdict(t, STAGES[-1]).startswith("pass"):
-        return "done", None, verdict(t, STAGES[-1])
-    for s in STAGES:
+    order = stages(t)
+    if verdict(t, order[-1]).startswith("pass"):
+        return "done", None, verdict(t, order[-1])
+    for s in order:
         v = verdict(t, s)
         if not v.startswith("pass"):
             return ("human" if v.startswith(("fail: human", "reject")) else "todo"), s, v
     return "done", None, ""
 
 
-def back_to(v, i):
-    """`fail: retry 03 - why` goes back to 03; no number (or a later one) retries the same stage."""
+def back_to(v, i, order=STAGES):
+    """`fail: retry 03 - why` goes back to 03; no number (or a later one, or one not in order) retries the same."""
     m = re.match(r"fail: retry\s+(\d\d)", v)
-    j = next((n for n, s in enumerate(STAGES) if m and s[:2] == m[1]), i)
+    j = next((n for n, s in enumerate(order) if m and s[:2] == m[1]), i)
     return min(j, i)
 
 
@@ -275,9 +286,10 @@ def review(t, attempt):
 def drive(t, run=run_stage):
     """Run stages from the first without a pass until the last passes or one stops for a person."""
     tries, last = {}, {}
-    i = next((n for n, s in enumerate(STAGES) if not verdict(t, s).startswith("pass")), len(STAGES))
-    while i < len(STAGES):
-        s = STAGES[i]
+    order = stages(t)
+    i = next((n for n, s in enumerate(order) if not verdict(t, s).startswith("pass")), len(order))
+    while i < len(order):
+        s = order[i]
         tries[s] = tries.get(s, 0) + 1
         if tries[s] > MAX_TRIES:
             return stop(t, s, f"fail: human - {s} ran {MAX_TRIES} times without a pass; last: {last.get(s)}")
@@ -287,8 +299,8 @@ def drive(t, run=run_stage):
         if v.startswith("pass"):
             i += 1
         elif v.startswith("fail: retry"):
-            j = back_to(v, i)
-            for later in STAGES[j:i + 1]:  # everything from j on runs again, also after a restart
+            j = back_to(v, i, order)
+            for later in order[j:i + 1]:  # everything from j on runs again, also after a restart
                 (t / later / "check.md").unlink(missing_ok=True)
             i = j
         elif v.startswith("reject") and s == "01_triage":
@@ -336,7 +348,7 @@ def reject(t, why):
 
 
 def worktree(t):
-    """The task's own checkout of the repo, on its branch: from the pushed branch if there is one, else the base."""
+    """The task's own checkout, on its branch: from the pushed branch if there is one, else the default branch."""
     wt, m = TREES / t.name, meta(t)
     if wt.exists():
         return wt
@@ -345,7 +357,7 @@ def worktree(t):
     pushed = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet", f"origin/{m['branch']}"],
                             capture_output=True).returncode == 0
     TREES.mkdir(exist_ok=True)
-    sh("git", "-C", repo, "worktree", "add", "-B", m["branch"], wt, f"origin/{m['branch'] if pushed else m['base']}")
+    sh("git", "-C", repo, "worktree", "add", "-B", m["branch"], wt, f"origin/{m['branch'] if pushed else profile(m['dir'])['base']}")
     return wt
 
 
@@ -373,10 +385,13 @@ def snapshot(t):
     (t / "issue.md").write_text("\n".join(parts) + "\n")
 
 
-def create(t, dir_, repo, base, it):
+def create(t, dir_, p, it):
     t.mkdir(parents=True)
-    fill = {"id": t.name, "repo": repo, "dir": dir_, "issue": str(it["number"]), "title": it["title"],
-            "url": it["url"], "branch": f"factory/{it['number']}-{slugify(it['title'])}", "base": base}
+    release = RELEASE in {lb["name"] for lb in it.get("labels", [])}
+    ver = re.match(r"release\s+v?(\S+)", it["title"], re.I) if release else None  # none: 03_build asks a person
+    fill = {"id": t.name, "repo": p["repo"], "dir": dir_, "issue": str(it["number"]), "title": it["title"],
+            "url": it["url"], "branch": p["head"].replace("{version}", ver[1]) if ver else f"factory/{it['number']}-{slugify(it['title'])}",
+            "base": p["release"] if release else p["base"], "kind": "release" if release else "task"}
     text = (ROOT / "_templates/task.md").read_text()
     for k, v in fill.items():
         text = text.replace("{" + k + "}", v.replace("\n", " "))
@@ -400,7 +415,7 @@ def work(t):
         worktree(t)
         drive(t)
     except Exception as e:  # one task's crash never stops the others
-        stop(t, state(t)[1] or STAGES[0], f"fail: human - runner error: {e!r}")
+        stop(t, state(t)[1] or stages(t)[0], f"fail: human - runner error: {e!r}")
     finally:
         held.close()
 
@@ -422,7 +437,7 @@ def reconcile(t):
     if not (pr := pr_of(t)):
         return
     st = json.loads(gh("pr", "view", pr, "--json", "state"))["state"]
-    if st == "MERGED":
+    if st == "MERGED" and meta(t)["kind"] != "release":  # a merged release still owes its after-merge steps
         (t / "06_approve").mkdir(exist_ok=True)
         (t / "06_approve" / "check.md").write_text("pass - merged by a person\n")
         finish(t)
@@ -435,10 +450,10 @@ def sync(dir_):
     p = profile(dir_)
     ensure_labels(p["repo"])
     issues = json.loads(gh("issue", "list", "-R", p["repo"], "--label", LABEL, "--state", "open",
-                           "--json", "number,title,url,body", "--limit", "100"))
+                           "--json", "number,title,url,body,labels", "--limit", "100"))
     for it in issues:
         if not (TASKS / f"{dir_}-{it['number']}").exists():
-            create(TASKS / f"{dir_}-{it['number']}", dir_, p["repo"], p["base"], it)
+            create(TASKS / f"{dir_}-{it['number']}", dir_, p, it)
     for t in TASKS.glob(f"{dir_}-*"):
         if (t / "TASK.md").exists() and state(t)[0] == "human":
             reconcile(t)
@@ -498,6 +513,42 @@ def new(dir_, title, body=""):
               "--label", LABEL).strip()
 
 
+def next_version(tag, subjects):
+    """Semver bump from conventional commit subjects since the last tag: `!:` major, `feat` minor, else patch."""
+    if not re.fullmatch(r"v?\d+\.\d+\.\d+", tag):
+        raise ValueError(f"last tag {tag!r} isn't semver; name the version")
+    major, minor, patch = map(int, tag.lstrip("v").split("."))
+    if any(re.match(r"\w+(\([^)]*\))?!:", s) for s in subjects):
+        return f"{major + 1}.0.0"
+    if any(re.match(r"feat(\([^)]*\))?:", s) for s in subjects):
+        return f"{major}.{minor + 1}.0"
+    return f"{major}.{minor}.{patch + 1}"
+
+
+def release(dir_, version=None):
+    """File a release task: everything on the default branch that the release branch lacks."""
+    if dir_ not in all_dirs():
+        raise ValueError(f"no profile repos/{dir_}.md; onboard the repo first")
+    p, repo = profile(dir_), ROOT.parent / dir_
+    if p["release"] == "none":
+        raise ValueError(f"repos/{dir_}.md has no release_branch; the factory can't release this repo")
+    sh("git", "-C", repo, "fetch", "--tags", "origin")
+    subjects = sh("git", "-C", repo, "log", "--no-merges", "--format=%s",
+                  f"origin/{p['release']}..origin/{p['base']}").splitlines()
+    if not subjects:
+        raise ValueError(f"nothing to release: {p['base']} has nothing {p['release']} lacks")
+    tag = subprocess.run(["git", "-C", repo, "describe", "--tags", "--abbrev=0", f"origin/{p['release']}"],
+                         capture_output=True, text=True).stdout.strip()
+    if not version and not tag:
+        raise ValueError(f"no tag on {p['release']} to count from; name the version")
+    version = (version or next_version(tag, subjects)).lstrip("v")
+    ensure_labels(p["repo"])
+    body = (f"Ship everything on `{p['base']}` since {tag or 'the start'} to `{p['release']}` (production).\n\n"
+            + "\n".join(f"- {s}" for s in subjects))
+    return gh("issue", "create", "-R", p["repo"], "--title", f"Release {version}", "--body", body,
+              "--label", f"{LABEL},{RELEASE}").strip()
+
+
 def feedback(task, stage, notes):
     t = TASKS / task
     st, at, _ = state(t)
@@ -505,7 +556,10 @@ def feedback(task, stage, notes):
     with (t / "history.md").open("a") as f:
         f.write(f"\n## Feedback from a person · {now()} · resume at {stage}\n\n{notes}\n\n")
     (t / "rejected.md").unlink(missing_ok=True)
-    for s in STAGES[STAGES.index(stage):]:
+    order = stages(t)
+    if stage not in order:
+        raise ValueError(f"{task} has no stage {stage}; its stages: {', '.join(order)}")
+    for s in order[order.index(stage):]:
         (t / s / "check.md").unlink(missing_ok=True)
     m = meta(t)
     try_gh("issue", "edit", m["issue"], "-R", m["repo"], "--add-label", LABEL, "--remove-label", f"{HUMAN},{REJECTED}")
@@ -524,6 +578,8 @@ def main(argv):
     task_ok = bool(args) and (TASKS / args[0] / "TASK.md").exists()
     if cmd == "new" and len(args) >= 2:
         print(new(args[0], args[1], " ".join(args[2:])))
+    elif cmd == "release" and args:
+        print(release(args[0], args[1] if len(args) > 1 else None))
     elif cmd == "pull":
         pull(args)
     elif cmd == "watch":
