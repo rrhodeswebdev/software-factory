@@ -4,6 +4,8 @@ A personal software factory for any repo. Label a GitHub issue `factory`, or fil
 
 The whole factory is this folder: plain markdown contracts, agent definitions and two standard-library Python scripts. Repos it works on sit beside it.
 
+Inspired by Jake Van Clief and his ICM (Interpretable Context Methodology) approach, where the folder structure is the agent architecture.
+
 ## Needs
 - [Claude Code](https://docs.claude.com/en/docs/claude-code), signed in
 - [GitHub CLI](https://cli.github.com/) (`gh auth login`)
