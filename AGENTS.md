@@ -23,9 +23,9 @@ A personal factory that takes GitHub issues labelled `factory` in any onboarded 
 |---|---|---|
 | a repo folder has no profile in `repos/` | the [onboard-repo](skills/onboard-repo/SKILL.md) skill | the person approves the profile |
 | a person has a task in mind | the [new-task](skills/new-task/SKILL.md) skill, or `python3 _tools/factory.py new {dir} "{title}" "{details}"` | the issue exists |
-| "work on tasks" | `python3 _tools/factory.py pull`, or `watch` to keep going | each task's last check |
+| "work on tasks", start, stop or check the factory | the [factory](skills/factory/SKILL.md) skill (`/factory start`) | each task's last check |
 | a task stopped for a person | the [unblock](skills/unblock/SKILL.md) skill | the person's choice is applied |
-| asked what is happening | `python3 _tools/factory.py status`, or `python3 _tools/dashboard.py` | report what exists |
+| asked what is happening | `/factory status`, or `/factory dashboard` | report what exists |
 | you are a stage agent | your stage's `CONTEXT.md` and [rules](_shared/rules.md), nothing else | your `check.md` |
 
 ## The one rule
