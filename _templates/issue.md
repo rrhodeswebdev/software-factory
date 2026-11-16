@@ -1,17 +1,14 @@
-## Outcome
-{What works after this issue that did not before, in one or two sentences.}
+## Problem
+{What is wrong or missing, and who notices. One short paragraph.}
 
-## Acceptance criteria
-- AC-{n}: {observable behavior, copied with its ID from the spec}
+## Done when
+- {an observable result a test or a browser check can confirm}
+- {one line each; three to six lines}
 
-## Decisions this task needs
-{The spec decisions the builder must follow, copied in full. The spec lives on the factory's machine, so the issue must stand alone; this copy is the one exception to one-home-per-fact.}
-
-## Depends on
-- #{issue} {or "nothing"}
+## Context
+{Files, links, screenshots, constraints. Optional.}
 
 ## Out of scope
-- {what a builder might be tempted to add}
+{What this task must not change. Optional.}
 
----
-Factory run: `{run-id}`
+Depends on: {#12, #14, or delete this line}

@@ -1,23 +1,35 @@
-# 02_spec - brief to testable spec
+# 02_spec - what done looks like, testably
 
-One job: settle every behavior, interface and data decision so no builder has to invent one.
+One job: turn the issue into a spec a builder can finish without making a product decision.
+
+Agent: `factory-spec`. Paths are from the factory root.
 
 ## Inputs
-- Working (this run): `runs/{run}/01_ideate/idea.md`
-- Working (on retry): `runs/{run}/02_spec/review.md` and `runs/{run}/02_spec/check.md`
-- Reference (every run): `skills/write-spec/SKILL.md`; for the check, `skills/review-spec/SKILL.md`
-- Reference (every run): the repo profile that `runs/{run}/RUN.md` links to, and the target repo's code at the profile's `path:`
-- Reference (every run): `_shared/rules.md`, `_shared/confidence.md`
+- Working (this task): `tasks/{id}/issue.md`, `tasks/{id}/history.md`, `tasks/{id}/01_triage/triage.md`
+- Working (this task): the repo's worktree. Read it; change nothing.
+- Working (on a retry): the builder's reason in `history.md` (a `fail: retry 02` from 03 names the gap)
+- Reference (every task): `_shared/rules.md`, `_shared/history.md`
+- Reference (every task): `repos/{dir}.md`
 
-Do NOT load: other runs, `03_plan/` onward.
+Do NOT load: other tasks, files the triage didn't point to unless the spec needs them.
 
 ## Process
-1. If `idea.md` is missing or its `check.md` is not `pass`, stop and say so.
-2. Follow `write-spec`. A decision you cannot make at confidence 4 or more stops the run with `fail: human`.
-3. On retry, fix only what `review.md` raised.
+1. Read `history.md` and `triage.md`. Apply any person's feedback; on a retry, close the gap the builder named and change nothing else.
+2. Read the code the task touches: the entry points, the helpers it should reuse, the existing tests next to it.
+3. Write `spec.md`:
+   - **Goal**: one sentence.
+   - **Acceptance criteria**: `AC-1`, `AC-2`, ...: each an observable result, with how it will be proved (unit test, integration test, command output, browser check). Three to eight.
+   - **Invariants**: `INV-1`, ...: what must not change (existing behavior, APIs, data). Skip if none.
+   - **Approach**: files likely touched, existing code to reuse, the smallest design that works. No alternatives essay.
+   - **Out of scope**: what the builder must not do.
+   - **UI**: `yes` if a person will see the change in a browser or app, else `no`.
+   - **Decisions**: every choice you made that the issue left open, and why. A choice that is really the author's (product direction, money, data loss, breaking an API) is not yours: stop with `fail: human`.
+4. Self-check before the verdict: each AC is testable and would fail if the feature broke; nothing in Approach contradicts an INV; nothing needs guessing.
 
 ## Outputs
-- `runs/{run}/02_spec/spec.md`
+- `tasks/{id}/02_spec/spec.md`
+- `tasks/{id}/02_spec/check.md`: `pass`, or `fail: human - <the decision needed, with your recommended answer>`
+- A handoff appended to `tasks/{id}/history.md`.
 
 ## Check
-A `factory-checker` agent follows `review-spec`, writes `02_spec/review.md`, and writes `check.md` per `_shared/confidence.md`: `pass` if no Must fix or Should fix at confidence 4 or more. On `fail: retry`, rerun 02.
+The self-check in step 4, then the builder: 03 sends the spec back with `fail: retry 02 - <gap>` when it can't build without guessing. The review panel and the approver test every AC again.

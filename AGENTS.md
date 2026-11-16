@@ -1,42 +1,33 @@
 # Software Factory
 
-Takes an idea for any repo from brainstorm to deployed code with its GitHub issues closed. Agents do every step; a person is pulled in only when a check is not confident.
+A personal factory that takes GitHub issues labelled `factory` in any onboarded repo and carries each to a merged pull request. Specialist agents do every step, several tasks at once; a person is asked only when a check isn't confident.
 
 ## Where things live
 
 | Folder | What it holds |
 |---|---|
-| `stages/` | the eight stage contracts, in order; the pipeline on one screen: [CONTEXT.md](CONTEXT.md) |
-| `runs/` | product: one folder per run, holding every stage's output and `check.md` |
-| `repos/` | one profile per repo; each repo is a folder beside this one in the projects folder (`../{dir}`) |
-| `skills/` | the factory's own skills, the how of each stage: [catalog](skills/CONTEXT.md) |
-| `_shared/` | rules every stage reads: [rules](_shared/rules.md), [confidence gate](_shared/confidence.md) |
-| `_templates/` | starters for a run, a repo profile, an issue and a PR |
-| `.claude/agents/` | one agent per stage, plus `factory-checker` and `factory-reviewer`: each sets its model and tools |
-| `_tools/` | `factory.py` runs each stage as its agent, retries and notifies; `links.py` checks links and input paths |
-| `setup/` | [onboard a repo](setup/onboard-repo.md), [run it on a schedule](setup/schedule.md) |
+| `stages/` | the six stage contracts, in order; the pipeline on one screen: [CONTEXT.md](CONTEXT.md) |
+| `stages/05_review/lenses/` | one file per specialist reviewer: code, security, performance, ui-ux, accessibility, tests, simplicity, data |
+| `tasks/` | product: one folder per task, with each stage's output, `check.md` and `history.md`: [shelf](tasks/CONTEXT.md) |
+| `repos/` | one profile per repo; each repo is a folder beside this one (`../{dir}`): [shelf](repos/CONTEXT.md) |
+| `skills/` | skills for the person driving the factory: [catalog](skills/CONTEXT.md) |
+| `_shared/` | what every agent reads: [rules](_shared/rules.md), [history and handoffs](_shared/history.md) |
+| `_templates/` | starters for a task card, a repo profile, an issue and a PR |
+| `.claude/agents/` | one agent per job, each with its own model and tools |
+| `_tools/` | `factory.py` runs everything; `dashboard.py` shows it; `links.py` checks links |
+| `setup/` | [keep it running](setup/schedule.md) |
 
 ## Route by what just happened
 
-| If | Go to | Then stop at |
+| If | Do | Then stop at |
 |---|---|---|
-| the repo folder has no profile in `repos/` | [onboard-repo](setup/onboard-repo.md) | the person approves the profile |
-| a new idea for a repo | copy `_templates/run.md` to `runs/{YYYY-MM-DD}-{dir}-{slug}/RUN.md`, then [01_ideate](stages/01_ideate/CONTEXT.md) | 01's check |
-| an issue labelled `factory:idea` | a new run with the issue as its idea (`factory.py pull` does this), then 01 | 01's check |
-| "pull ready issues" for a repo | [05_build](stages/05_build/CONTEXT.md), pull mode | each task's 08 check |
-| a `check.md` says `pass` | the next numbered stage | its check |
-| a `check.md` says `fail: retry` | the stage that `check.md` names | its check |
-| a `check.md` says `fail: human` | stop that task, report the why | a person edits `check.md` |
-| a person gives notes on a stopped run or task | `python3 _tools/factory.py feedback {run} [{issue}] "{notes}"` | the stage's next check |
-| a person drops a run or task | `python3 _tools/factory.py reject {run} [{issue}] "{why}"` | done |
-| asked for status | `python3 _tools/factory.py status` | report what exists |
-| asked to improve the factory | [lessons](_shared/lessons.md): fold each line into its skill or rule, then delete it | the person reviews the diff |
-| resuming a run | the first stage folder in the run without a passing `check.md` | its check |
-
-## How to run a stage
-
-Use only the factory's own `skills/` and `.claude/agents/`, nothing installed elsewhere. Run the stage as its agent (`factory-ideate` … `factory-deploy`, mapped in `_tools/factory.py`), and give it only the stage's `CONTEXT.md`, the run id, and for stages 05–08 the issue number. The orchestrating agent reads nothing but the first line of each `check.md`. Stages 01–04 run once per run; 05–08 run once per task, independent tasks in parallel, dependent tasks in order.
+| a repo folder has no profile in `repos/` | the [onboard-repo](skills/onboard-repo/SKILL.md) skill | the person approves the profile |
+| a person has a task in mind | the [new-task](skills/new-task/SKILL.md) skill, or `python3 _tools/factory.py new {dir} "{title}" "{details}"` | the issue exists |
+| "work on tasks" | `python3 _tools/factory.py pull`, or `watch` to keep going | each task's last check |
+| a task stopped for a person | the [unblock](skills/unblock/SKILL.md) skill | the person's choice is applied |
+| asked what is happening | `python3 _tools/factory.py status`, or `python3 _tools/dashboard.py` | report what exists |
+| you are a stage agent | your stage's `CONTEXT.md` and [rules](_shared/rules.md), nothing else | your `check.md` |
 
 ## The one rule
 
-Nothing moves on until the last stage's `check.md` says `pass`.
+Nothing moves on until the last stage's `check.md` says `pass`, and nothing merges unless the [gate](stages/06_approve/references/gate.md) holds.

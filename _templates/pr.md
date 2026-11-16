@@ -1,12 +1,15 @@
-## What
-{One paragraph: the change and why.}
+Closes #{issue}
+
+## What changed
+{Two to four lines: the change and why, in plain words.}
 
 ## Proof
-| Criterion | Evidence |
+| Criterion | Proof |
 |---|---|
-| AC-{n} | {test name, command output, or browser check} |
+| AC-1 {short} | {test name and the command that ran it, or the browser check} |
 
-Refs #{issue}
+## Notes for review
+{Anything a reviewer should look at first; decisions taken and why. "None" is fine.}
 
 ---
-Factory run: `{run-id}`
+Built by the software factory, task `{id}`.

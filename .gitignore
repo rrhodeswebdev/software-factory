@@ -1,12 +1,10 @@
 .worktrees/
-.factory.lock
-runs/**/.lock
-runs/**/agent.log
+.locks/
 __pycache__/
 
-# Per-machine data, kept out of the public repo: run outputs (specs, reviews, logs)
-# and repo profiles (repo names, deploy and rollback commands). Only the shelf notes are shared.
-/runs/*
-!/runs/CONTEXT.md
+# Per-machine data, kept out of the repo: task outputs and logs, and repo profiles.
+# Only the shelf notes are shared.
+/tasks/*
+!/tasks/CONTEXT.md
 /repos/*
 !/repos/CONTEXT.md

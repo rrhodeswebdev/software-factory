@@ -1,13 +1,9 @@
-# skills - the factory's own craft
+# Skills - for the person driving the factory
 
-How each kind of work is done. Stage contracts say when and with what; a skill says how. The factory uses only these: no skill, plugin or agent type installed outside this folder. `.claude/skills` links here, so Claude Code also offers each one as a slash command.
+Skills a person uses in a Claude Code session opened in the factory folder (`.claude/skills` links here). Stage agents don't use these: each follows its stage's `CONTEXT.md`.
 
-| Skill | Used by |
+| Skill | Use it to |
 |---|---|
-| [refine-idea](refine-idea/SKILL.md) | 01_ideate |
-| [write-spec](write-spec/SKILL.md) | 02_spec |
-| [review-spec](review-spec/SKILL.md) | 02_spec check |
-| [plan-tasks](plan-tasks/SKILL.md) | 03_plan |
-| [build-task](build-task/SKILL.md) | 05_build |
-| [prove-task](prove-task/SKILL.md) | 05_build |
-| [review-code](review-code/SKILL.md) and its [lenses](review-code/lenses/) | 06_review |
+| [onboard-repo](onboard-repo/SKILL.md) | add a repo: write `repos/{dir}.md` from the repo itself |
+| [new-task](new-task/SKILL.md) | turn a request into well-formed `factory` issues, split and ordered |
+| [unblock](unblock/SKILL.md) | go through tasks stopped for a person and apply their decision |

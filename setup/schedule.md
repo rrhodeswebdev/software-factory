@@ -1,18 +1,27 @@
-# Schedule - pull ready issues every 30 minutes
+# Schedule - keep the factory working without a terminal open
 
-One job: run `python3 _tools/factory.py pull` on a timer. In every onboarded repo, an issue labelled `factory:idea` becomes a full run from brainstorm to deploy (the idea issue closes when every task is deployed), and an issue labelled `factory:ready` gets built, reviewed, merged and deployed. A run waiting on its author (`factory:needs-info`) resumes on the first pull after they reply.
+`python3 _tools/factory.py watch` pulls every five minutes and starts new work at once. Run it in a terminal tab, or let macOS keep it alive with launchd:
 
-## Turn it on
-```
-cp setup/local.software-factory.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/local.software-factory.plist
-```
-It uses a login shell, so `claude`, `gh` and `python3` resolve as they do in your terminal. Output goes to `/tmp/software-factory.log`. A pull that is still running when the next one starts makes the new one exit, and a run already being driven by `new` or `resume` is left alone.
+1. Save as `~/Library/LaunchAgents/local.software-factory.plist`, with your factory path in both places:
 
-## Turn it off
-```
-launchctl unload ~/Library/LaunchAgents/local.software-factory.plist
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>local.software-factory</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/zsh</string><string>-lc</string>
+    <string>cd /path/to/software-factory &amp;&amp; exec python3 _tools/factory.py watch 5</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/path/to/software-factory/.locks/watch.log</string>
+  <key>StandardErrorPath</key><string>/path/to/software-factory/.locks/watch.log</string>
+</dict></plist>
 ```
 
-## Check
-After the first interval, `tail /tmp/software-factory.log` shows the pull ran, and `python3 _tools/factory.py status` lists any task it picked up.
+2. `mkdir -p .locks` in the factory (the log goes there), then `launchctl load ~/Library/LaunchAgents/local.software-factory.plist` to start; `launchctl unload` the same path to stop.
+
+`zsh -lc` gives it your login PATH, so `claude`, `gh`, `git` and the repos' own tools (bun, node) are found. `gh` and `claude` must already be signed in.
+
+The dashboard (`python3 _tools/dashboard.py`) shows whether a runner is alive and when it last pulled.

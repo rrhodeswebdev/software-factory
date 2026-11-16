@@ -1,41 +1,38 @@
-# Software Factory - the pipeline
+# Pipeline - one issue to one merged PR
 
-The flow: decide it, spec it, split it, file it, build it, review it, merge it, ship it.
+Every task runs the same six stages. `_tools/factory.py` is the conveyor: it picks issues up, gives each task its own git worktree, runs each stage as a fresh agent, routes on the first line of each `check.md`, and runs many tasks at once (`FACTORY_AGENTS`, default 4 agents at a time).
 
-| Stage | Job | Runs |
+```
+GitHub issue labelled `factory`
+  │
+  01_triage      factory-triage        worth doing?          pass │ reject │ human
+  02_spec        factory-spec          what done looks like  pass │ human
+  03_build       factory-builder       change + proof + PR   pass │ retry 02 │ human
+  04_preflight   factory-preflight     lint, build, CI green pass │ retry 03 │ human
+  05_review      factory-orchestrator  picks the panel, then
+                 factory-reviewer ×n   one seat per lens     pass │ retry 03
+  06_approve     factory-approver      the merge gate        merged │ retry 03/04 │ human
+  │
+merged PR, issue closed
+```
+
+| Stage | Contract | Writes |
 |---|---|---|
-| [01_ideate](stages/01_ideate/CONTEXT.md) | raw idea to decided brief | once per run |
-| [02_spec](stages/02_spec/CONTEXT.md) | brief to spec with `AC-n` IDs | once per run |
-| [03_plan](stages/03_plan/CONTEXT.md) | spec to one-PR tasks | once per run |
-| [04_issues](stages/04_issues/CONTEXT.md) | tasks to GitHub issues | once per run |
-| [05_build](stages/05_build/CONTEXT.md) | issue to tested PR | per task |
-| [06_review](stages/06_review/CONTEXT.md) | PR to specialist-panel verdict | per task |
-| [07_merge](stages/07_merge/CONTEXT.md) | approved PR to merged | per task |
-| [08_deploy](stages/08_deploy/CONTEXT.md) | merged to deployed, issue closed | per task |
+| 01 | [triage](stages/01_triage/CONTEXT.md) | `triage.md` |
+| 02 | [spec](stages/02_spec/CONTEXT.md) | `spec.md` |
+| 03 | [build](stages/03_build/CONTEXT.md) | branch, draft PR, `build.md` |
+| 04 | [preflight](stages/04_preflight/CONTEXT.md) | `preflight.md` |
+| 05 | [review](stages/05_review/CONTEXT.md) | `panel.md`, `<lens>.md` per seat |
+| 06 | [approve](stages/06_approve/CONTEXT.md) | `approval.md`, the merge |
 
-Factory (every run): `_shared/`, `skills/`, the repo's profile in `repos/`, `_templates/`, each stage's `references/`.
-Code: each repo is a folder beside the factory (`../{dir}`); builds happen in worktrees under `.worktrees/`.
-Product (new each run): `runs/{run}/`, shaped like this:
+## Routing
+- `pass`: the next stage runs.
+- `fail: retry NN`: stage `NN` runs again with the reason in `history.md`; later stages rerun after it. A stage that runs three times without a pass stops for a person.
+- `fail: human`: the task stops. The issue gets `factory:needs-human` and a comment; macOS notifies; the dashboard lists it. A person merges or closes the PR on GitHub, or runs `feedback` or `reject`.
+- `reject` (triage only): the issue gets the reason and `factory:rejected`.
 
-```
-runs/2026-11-03-cheergenics-team-chat/
-  RUN.md                           repo + profile link (from _templates/run.md)
-  01_ideate/idea.md   check.md
-  02_spec/spec.md     review.md  check.md
-  03_plan/tasks.md    check.md
-  04_issues/issues.md check.md
-  tasks/123/05_build/build.md      check.md
-  tasks/123/06_review/<specialist>.md  verdict.md  check.md
-  tasks/123/07_merge/merge.md      check.md
-  tasks/123/08_deploy/deploy.md    check.md
-```
+## Labels
+`factory` (take this), `factory:working`, `factory:needs-human`, `factory:rejected`. Removing `factory` pauses a task. `Depends on: #12` in an issue holds it until #12 is closed.
 
-**Broken on purpose:** outputs do not live in `stages/*/output/`. Runs for different repos happen at the same time, so each run keeps its own stage folders under `runs/`, and `stages/` holds only contracts.
-
-**Fan-out:** at 04 one run becomes N tasks, and 05–08 run once per task. Entering at 05 (pull mode) works for any issue labelled `factory:ready`, whether the factory filed it or a person did.
-
-**Running it:** `python3 _tools/factory.py new {dir} "{idea}"` drives a run end to end, each stage a fresh headless Claude Code process running as that stage's agent from `.claude/agents/`, with a time limit; `resume {run}` continues one; `pull` turns every `factory:idea` issue into a run, builds every `factory:ready` issue, and runs on a schedule ([setup/schedule.md](setup/schedule.md)). To shape the idea with an agent yourself, do 01 in a chat, then `resume`.
-
-**Status:** a stage is done when its folder holds its output and a `check.md` whose first line is `pass`. A run is done when every task's 08 check passes.
-
-**Self-contained:** every stage follows a skill in `skills/` and nothing installed outside this folder. Skills are plain markdown, so any agent that reads files can run them; Claude Code also lists them as slash commands through `.claude/skills`. Agents in `.claude/agents/` say who does each stage and on which model; the contracts say what.
+## Memory
+Each task's [history](_shared/history.md) is the thread between agents: runner events, every stage's handoff, a person's feedback.

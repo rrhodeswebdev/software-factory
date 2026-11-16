@@ -1,37 +1,32 @@
 ---
 repo: {owner}/{name}
-path: ../{dir}
 default_branch: main
 merge_method: squash
+auto_merge: true
 ---
 # {dir} - repo profile
 
-Everything the factory needs to build, merge and ship this repo. `path:` is the repo's folder beside the factory, relative to the factory root. Filled by `setup/onboard-repo.md`.
+Everything the factory's agents need to build, check and merge in this repo. The file name is the repo's folder beside the factory (`../{dir}`). The frontmatter is read by `_tools/factory.py`: `default_branch` is where PRs go, `merge_method` is `squash`, `merge` or `rebase`, and `auto_merge: false` makes the approver always ask a person.
+
+{One paragraph: what the repo is, its stack, and where its own agent guide lives (AGENTS.md, CLAUDE.md, CONTRIBUTING.md). Agents follow that guide inside the repo.}
 
 ## Commands
-- install: `{e.g. bun install}`
-- test: `{e.g. bun test}`
-- lint / typecheck: `{...}`
-- dev server, for browser proof: `{...}`
-- env files: `{paths relative to the repo that git ignores but builds need, e.g. apps/web/.env; or none}`
+Run from the worktree root. Write `none` when the repo has none; agents never invent one.
+- install:
+- format / lint (auto-fix):
+- lint (check):
+- typecheck:
+- test:
+- build:
+- dev server, for UI proof (`{port}` is filled by the agent):
 
 ## CI
-- required checks: {from branch protection, or "none"}
-
-## Deploy
-- how: {auto on merge to the default branch via <platform> | run `{command}`}
-- wait for it: `{command that shows the deployment for a commit, e.g. gh api repos/{owner}/{name}/deployments?sha={sha}}`
-- preview url: `{command that prints the preview deploy URL for a PR, e.g. from its deployment status; or none}`
-- verify: `{command that exits 0 only when the change is live and healthy}`
-- rollback: `{command}` (default if blank: open a PR reverting the merge commit, merge it, deploy, verify)
-
-## Review panel
-- performance seat: {web | general}
-- accessibility seat: {yes | no}
+- required checks: {names, or "none"}
 
 ## Protected paths
-Files no factory PR may change, on top of `.github/workflows/` and `.env` files. The runner sends a PR that touches one back to 05. fnmatch patterns, so `*` also matches `/`.
-- {e.g. `packages/auth/*`, `infra/*`; or none}
+A PR that touches one always goes to a person. Workflows, env files and secrets are always protected; add the repo's own.
+- `.github/workflows/*`
+- `.env*`
 
-## Always human (adds to `_shared/confidence.md`)
-- paths: {e.g. `packages/auth/**`, `**/migrations/**`}
+## Notes
+{Anything an agent would otherwise get wrong: branch rules, what never to touch, how issues get closed.}

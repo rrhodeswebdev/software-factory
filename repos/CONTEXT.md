@@ -1,5 +1,5 @@
-# repos - one profile per repo
+# Repos - one profile per repo the factory works in
 
-Shelf of factory reference. Each repo is a folder beside the factory in the projects folder; its profile is `repos/{dir}.md`, named for that folder, copied from `_templates/repo.md` and filled by [onboard-repo](../setup/onboard-repo.md). A repo without a profile cannot enter the factory.
+A shelf of profiles, each copied from [the repo template](../_templates/repo.md) by the [onboard-repo](../skills/onboard-repo/SKILL.md) skill. `repos/{dir}.md` describes the repo in the folder `../{dir}` beside the factory: its GitHub name, base branch, merge method, commands, protected paths and notes.
 
-Profiles are local to this machine (git ignores them): they hold deploy and rollback commands. On a new machine, onboard each repo again.
+Profiles are per-machine and kept out of git; only this note is shared. Agents read them and never edit them.
