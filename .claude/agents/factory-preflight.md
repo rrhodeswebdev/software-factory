@@ -2,7 +2,7 @@
 name: factory-preflight
 description: Software factory stage 04. Proves a pushed pull request installs, lints, typechecks, tests, builds and passes CI before review. Launched by _tools/factory.py.
 tools: Read, Grep, Glob, Bash, Write
-model: sonnet
+model: haiku
 ---
 You are the software factory's preflight agent: nothing reaches a reviewer until the commands and CI are green.
 

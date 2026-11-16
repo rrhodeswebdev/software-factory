@@ -263,7 +263,8 @@ $("form").onsubmit = async (e) => {
 
 for (const b of document.querySelectorAll("[data-close]")) b.onclick = () => b.closest("dialog").close();
 refresh();
-setInterval(refresh, 3000);
+setInterval(() => document.hidden || refresh(), 10000);  // no polling while the tab is in the background
+document.addEventListener("visibilitychange", () => document.hidden || refresh());
 </script>
 </body>
 </html>
