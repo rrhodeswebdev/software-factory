@@ -5,7 +5,7 @@ Each stage runs as a fresh headless Claude Code process, as that stage's agent i
     python3 _tools/factory.py new <dir> "<title>" ["<details>"]     file a task (a GitHub issue labelled factory)
     python3 _tools/factory.py release <dir> [<version>]   file a release task: ship the default branch to production
     python3 _tools/factory.py pull [<dir> ...]     drive every open factory issue as far as it goes, then exit
-    python3 _tools/factory.py watch [<minutes>]    pull every <minutes> (default 5) forever; new work starts at once
+    python3 _tools/factory.py watch [<minutes>]    pull every <minutes> (default 1) forever; new work starts at once
     python3 _tools/factory.py status               one line per task
     python3 _tools/factory.py feedback <task> [<stage>] "<notes>"   send a task back (default: where it stopped)
     python3 _tools/factory.py reject <task> "<why>"                  drop a task and close its PR
@@ -585,7 +585,7 @@ def main(argv):
     elif cmd == "pull":
         pull(args)
     elif cmd == "watch":
-        watch(float(args[0]) if args else 5)
+        watch(float(args[0]) if args else 1)
     elif cmd == "status":
         status()
     elif cmd == "feedback" and task_ok and len(args) >= 2:

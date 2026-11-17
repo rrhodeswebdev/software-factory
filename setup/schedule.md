@@ -1,6 +1,6 @@
 # Schedule - keep the factory working without a terminal open
 
-`python3 _tools/factory.py watch` pulls every five minutes and starts new work at once. Run it in a terminal tab, or let macOS keep it alive with launchd:
+`python3 _tools/factory.py watch` pulls every minute and starts new work at once. Run it in a terminal tab, or let macOS keep it alive with launchd:
 
 1. Save as `~/Library/LaunchAgents/local.software-factory.plist`, with your factory path in both places:
 
@@ -11,7 +11,7 @@
   <key>Label</key><string>local.software-factory</string>
   <key>ProgramArguments</key><array>
     <string>/bin/zsh</string><string>-lc</string>
-    <string>cd /path/to/software-factory &amp;&amp; exec python3 _tools/factory.py watch 5</string>
+    <string>cd /path/to/software-factory &amp;&amp; exec python3 _tools/factory.py watch 1</string>
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>

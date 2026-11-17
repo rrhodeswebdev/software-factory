@@ -17,7 +17,7 @@ cd ~/projects/software-factory
 claude                                   # then: /onboard-repo myapp  (writes repos/myapp.md)
 python3 _tools/factory.py new myapp "Add CSV export" "## Done when
 - the Reports page has an Export CSV button"
-python3 _tools/factory.py watch          # works every open factory issue, pulls every 5 min
+python3 _tools/factory.py watch          # works every open factory issue, pulls every minute
 python3 _tools/dashboard.py              # http://127.0.0.1:8787
 ```
 
