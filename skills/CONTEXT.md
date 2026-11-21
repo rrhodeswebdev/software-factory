@@ -5,6 +5,6 @@ Skills a person uses in a Claude Code session opened in the factory folder (`.cl
 | Skill | Use it to |
 |---|---|
 | [factory](factory/SKILL.md) | run the scripts: `start`, `stop`, `status`, `pull`, `watch`, `dashboard`, `check` |
-| [onboard-repo](onboard-repo/SKILL.md) | add a repo: write `repos/{dir}.md` from the repo itself |
+| [onboard-repo](onboard-repo/SKILL.md) | add a repo: write `repos/{dir}.md` from the repo itself, and a dev container if it has none |
 | [new-task](new-task/SKILL.md) | turn a request into well-formed `factory` issues, split and ordered |
 | [unblock](unblock/SKILL.md) | go through tasks stopped for a person and apply their decision |
