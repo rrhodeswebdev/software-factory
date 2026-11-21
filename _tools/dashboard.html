@@ -17,6 +17,7 @@
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { background: var(--bg); scrollbar-color: var(--line-2) transparent; }
   body { margin: 0; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased;
     font: 13.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, sans-serif; font-variant-numeric: tabular-nums; }
@@ -221,7 +222,7 @@
     border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
   .ho-who { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
   .handoff dt { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
-  .handoff dd { margin: 0; color: var(--text-2); }
+  .handoff dd { margin: 0; color: var(--text-2); white-space: pre-line; }
   .feed { list-style: none; margin: 0; padding: 0; position: relative; }
   .feed::before { content: ""; position: absolute; left: 4px; top: 8px; bottom: 8px; width: 1px; background: var(--line-2); }
   .ev { position: relative; display: grid; grid-template-columns: 9px minmax(0, 1fr) auto; gap: 12px; padding: 5px 0; align-items: baseline; }
@@ -237,7 +238,7 @@
   .raw summary:hover { color: var(--text); }
 
   /* Wide screens: the page is exactly one window; the task list scrolls inside its panel. */
-  @media (min-width: 1101px) {
+  @media (min-width: 1101px) and (min-height: 640px) {
     body { height: 100vh; overflow: hidden; }
     .app { height: 100vh; display: flex; flex-direction: column; }
     .top, .stats { flex: none; }
@@ -559,15 +560,16 @@ function parseHistory(text) {
     const h = line.match(/^## (\d\d_[\w-]+) · ([\w-]+) · attempt (\d+)/);
     if (ev) { events.push({ at: ev[1], text: ev[2] }); cur = null; }
     else if (h) { cur = handoffs[h[1]] = { agent: h[2], attempt: +h[3], items: [] }; }
-    else if (cur && /^- \w[\w ]*: /.test(line)) { const m = line.match(/^- (\w[\w ]*): (.*)$/); cur.items.push([m[1], m[2]]); }
-    else if (cur && line.trim() && !line.startsWith("- ")) cur = null;
+    else if (cur && /^- [^:]+?: /.test(line)) { const m = line.match(/^- ([^:]+?): (.*)$/); cur.items.push([m[1], m[2]]); }
+    else if (cur && cur.items.length && line.trim()) { const it = cur.items[cur.items.length - 1]; it[1] += "\n" + line.trim(); }
+    else if (line.startsWith("## ")) cur = null;
   }
   return { events: events.reverse(), handoffs };
 }
 const nice = (text) => text.replace(/\b0\d_([a-z]+)/g, (_, n) => n[0].toUpperCase() + n.slice(1));
 const verdictText = (v) => nice(v.replace(/^pass - /, "").replace(/^pass$/, "passed").replace(/^fail: human - /, "")
-  .replace(/^fail: retry (\d\d) - /, (_, n) => `sent back to ${short(last.stages.find((x) => x.startsWith(n)) || n + "_stage")}: `));
-const evKind = (text) => /: pass\b/.test(text) ? "pass" : /fail: human|: reject/.test(text) ? "stop" : /fail: retry/.test(text) ? "retry" : "";
+  .replace(/^fail: retry - /, "sent back: ").replace(/^fail: retry (\d\d) - /, (_, n) => `sent back to ${short(last.stages.find((x) => x.startsWith(n)) || n + "_stage")}: `));
+const evKind = (text) => /: pass\b/.test(text) ? "pass" : /fail: human|: reject|^rejected\b/.test(text) ? "stop" : /fail: retry/.test(text) ? "retry" : "";
 const STEP = { pass: "pass", stop: "human", retry: "retry", live: "running", "": "queued" };
 
 async function open(id) {
@@ -614,7 +616,7 @@ async function open(id) {
     head.append(el("span", "st-name", short(st.name)));
     if (ho && ho.attempt > 1) head.append(el("span", "pill", `attempt ${ho.attempt}`));
     head.append(el("span", "st-verdict", st.verdict ? verdictText(st.verdict) : sk === "live" ? "running now" : "not run yet"));
-    sum.append(icon(STEP[sk]), head);
+    sum.append(icon(sk === "stop" && t.state !== "human" ? "rejected" : STEP[sk]), head);
     det.append(sum);
     const more = file.split("\n").slice(1).join("\n").trim();
     const inner = el("div", "st-body");
@@ -677,7 +679,11 @@ $("form").onsubmit = async (e) => {
 
 for (const b of document.querySelectorAll("[data-close]")) b.onclick = () => b.closest("dialog").close();
 // a click on the dimmed backdrop closes a sheet
-for (const d of document.querySelectorAll("dialog.sheet")) d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+for (const d of document.querySelectorAll("dialog.sheet")) {
+  let down = null;
+  d.addEventListener("pointerdown", (e) => { down = e.target; });
+  d.addEventListener("click", (e) => { if (e.target === d && down === d) d.close(); });
+}
 refresh();
 setInterval(() => document.hidden || refresh(), 10000);  // no polling while the tab is in the background
 document.addEventListener("visibilitychange", () => document.hidden || refresh());
