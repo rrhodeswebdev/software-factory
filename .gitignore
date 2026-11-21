@@ -8,3 +8,7 @@ __pycache__/
 !/tasks/CONTEXT.md
 /repos/*
 !/repos/CONTEXT.md
+
+# Impeccable design working files; keep only the surface briefs
+.impeccable/*
+!.impeccable/surfaces/
