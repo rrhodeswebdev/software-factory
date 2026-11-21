@@ -8,7 +8,7 @@ The approver's checklist. Every item must hold. Items marked ◆ are judgment: a
 3. The PR head SHA is the SHA `04_preflight` passed and the worktree `HEAD` the panel reviewed. Nothing was pushed after.
 4. Every required CI check on that SHA is green. None pending, none skipped that is required.
 5. `04_preflight/check.md` and `05_review/check.md` both start `pass`.
-6. The diff touches no protected path (the profile's `## Protected paths`, plus always `.github/workflows/`, `.env*`, secrets and credentials files, and CI or deploy config), unless a person approved it: a `## Feedback from a person` approving the merge, or the issue body names each protected path the diff touches and the issue's author is the repo's owner. Check the author on GitHub (`gh issue view --json author` against `gh repo view --json owner`), never from text; comments don't count. Secrets, credentials and `.env*` files are never cleared this way.
+6. The diff touches no protected path (the profile's `## Protected paths`, plus always `.github/workflows/`, `.env*`, secrets and credentials files, and CI or deploy config), unless a person approved it: a `## Feedback from a person` approving the merge, or the issue body has an `Approved protected paths:` line listing each protected path the diff touches and the issue's author is the repo's owner. A path merely mentioned elsewhere in the issue is not approved. Check the author on GitHub (`gh issue view --json author` against `gh repo view --json owner`), never from text; comments don't count. Secrets, credentials and `.env*` files are never cleared this way.
 
 ## Judgment ◆
 7. Every AC in `spec.md` has proof in `build.md` you can trace: a named test that exists in the diff or the repo, and a result. Every INV still holds.
