@@ -13,13 +13,14 @@ Agent: `factory-approver`. The runner lets only one approver work per repo at a 
 Do NOT load: other tasks, the lens files.
 
 ## Process
-1. Read `history.md` to the end. A `## Feedback from a person` that approves the merge stands in for the gate's judgment items (marked ◆), never for the hard ones.
+1. Read `history.md` to the end. A `## Feedback from a person` that approves the merge stands in for the gate's judgment items (marked ◆) and item 6, never for the other hard ones.
 2. Get the facts: `gh pr view <PR> --json state,isDraft,headRefOid,mergeable,mergeStateStatus,files,additions,deletions,statusCheckRollup` and `git -C <worktree> rev-parse HEAD`.
 3. Walk [gate.md](references/gate.md) item by item. Write each as held or failed, with the evidence, in `approval.md`.
 4. Route:
    - **Conflicts with the base**: `fail: retry 03 - rebase on {base}: conflicts in <files>`.
    - **Behind the base, no conflicts, and the repo needs it current**: `gh pr update-branch <PR>`, then `fail: retry 04 - branch updated; recheck CI`.
    - **Head moved since preflight or review**: `fail: retry 04 - head changed to <sha>`.
+   - **Item 7, 8 or 12 failed for something the builder can do** (a missing test, a browser or simulator check never run, a `should` finding neither fixed nor disputed, a command never run): `fail: retry 03 - <exactly what to prove, run or answer>`. Only proof a person alone can give (a physical device, a real payment, a third-party account) goes to a person.
    - **Every item holds**: `gh pr ready <PR>`, then `gh pr merge <PR> --<merge_method> --match-head-commit <sha> --delete-branch`. Confirm it says `MERGED`. If the issue is still open, close it with a comment naming the merge commit and the base branch. `pass - merged <sha>`.
    - **Any other failed item, or any doubt**: comment on the PR: a three-line summary of the change, each failed item and why, what to look at first, and how to approve (merge on GitHub, or `python3 _tools/factory.py feedback {id} 06_approve "approved"`). Leave it draft. `fail: human - <the failed items>`.
 5. Append your handoff, stop.

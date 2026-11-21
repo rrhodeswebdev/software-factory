@@ -11,7 +11,7 @@ A release (ship the default branch to production) isn't written by hand: run the
 1. **Which repo.** Match the person's words to a profile in `repos/`. None fits: offer the [onboard-repo](../onboard-repo/SKILL.md) skill first.
 2. **Understand it.** If the ask is unclear about what done looks like, ask one question at a time, each with your recommended answer. Stop asking once you could write the "Done when" lines.
 3. **One PR each.** Work bigger than about 400 changed lines, or two concerns at once, becomes several tasks. Order them, and give each later one `Depends on: #n`.
-4. **Write each body** from [the issue template](../../_templates/issue.md): Problem, Done when (observable, testable lines), Context, Out of scope, Depends on. Keep it short; don't design the solution.
+4. **Write each body** from [the issue template](../../_templates/issue.md): Problem, Done when (observable, testable lines), Context, Out of scope, Depends on. Keep it short; don't design the solution. If the work must touch a protected path in the profile, ask the person, and if they agree, add `Approved protected paths: <each path>`. Filed as them, it lets the factory merge without stopping.
 5. **Show the person** the title and body of every task before filing. File only what they approve.
 6. **File each**, in dependency order so the numbers exist:
    `python3 _tools/factory.py new {dir} "{title}" "{body}"`

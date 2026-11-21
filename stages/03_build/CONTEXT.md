@@ -16,7 +16,7 @@ Do NOT load: other tasks, triage notes the spec already absorbed.
 1. Read `history.md` and `spec.md`. If the spec can't be built without guessing, stop: `fail: retry 02 - <the gap>`.
 2. On a retry, list every failure from preflight and every `blocking` and `should` finding from review. Fix each, or dispute it with evidence. A finding you neither fix nor dispute fails the next review.
 3. Build the smallest change that meets every AC and keeps every INV. Follow the repo's own guide.
-4. Prove each AC with a test that would fail if the behavior broke; run it and keep the output. For `UI: yes`, also start the dev server and check the change in a real browser if you have one; record what you saw.
+4. Prove each AC with a test that would fail if the behavior broke; run it and keep the output. For `UI: yes`, also start the dev server and check the change in headless Chromium (Playwright is installed); for a native app, in the iOS simulator (`xcrun simctl`). Record what you saw. Skip a check only when it needs what you can't have (a physical device, a real payment), and say so in `build.md`.
 5. Run the profile's lint, typecheck, test and build commands until they pass.
 6. Commit with [Conventional Commit](../../_shared/rules.md) messages (`feat(404): link each home section`), each ending `Refs #{issue}`. Push: `git push -u origin {branch}`. Never push to the base branch.
 7. No PR yet: `gh pr create --draft --base {base} --head {branch}` with a Conventional Commit title naming the change (`fix(nav): ...`; `feat` only for something a user can now do) and a body from `_templates/pr.md`. A PR already open: push to it and update its body's Proof table.

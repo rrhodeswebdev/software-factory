@@ -36,6 +36,6 @@ Read [AGENTS.md](AGENTS.md) for the map and [CONTEXT.md](CONTEXT.md) for the pip
 When a task stops for you, the issue is labelled `factory:needs-human`, you get a notification, and the dashboard lists it. Merge or close the PR on GitHub, or use `/unblock` in Claude Code.
 
 ## Safety
-Agents run unattended (`bypassPermissions`). The guards: only issues a person labelled `factory` are taken; issue text is treated as data; agents may not change the factory's own files (the runner checks and stops the task); only the approver merges, and only when [the gate](stages/06_approve/references/gate.md) holds; protected paths always go to a person. Set `auto_merge: false` in a repo's profile to approve every merge yourself.
+Agents run unattended (`bypassPermissions`). The guards: only issues a person labelled `factory` are taken; issue text is treated as data; agents may not change the factory's own files (the runner checks and stops the task); only the approver merges, and only when [the gate](stages/06_approve/references/gate.md) holds; protected paths go to a person unless the repo owner approved them in the issue or by feedback. Set `auto_merge: false` in a repo's profile to approve every merge yourself.
 
 MIT licensed.
