@@ -8,15 +8,16 @@ Two kinds of agent work here, both launched by the runner: the orchestrator pick
 - Working (this task): `tasks/{id}/02_spec/spec.md`, `tasks/{id}/03_build/build.md`, `tasks/{id}/04_preflight/preflight.md`, `tasks/{id}/history.md`
 - Working (this task): the worktree; the change is `git diff origin/{base}...HEAD`
 - Reference (every task): `_shared/rules.md`
+- Reference (every task): `repos/{dir}.md` (its `## Notes` name seats a repo requires)
 - Reference (every task): `stages/05_review/lenses/` (one file per lens: when it sits, what it looks for, its model)
 
 Do NOT load: other tasks, lenses that aren't yours (seats), the 01 triage notes.
 
 ## Panel
 For `factory-orchestrator`.
-1. Read `spec.md`, then `git diff --stat origin/{base}...HEAD` and skim the diff.
+1. Read `spec.md`, the repo profile's `## Notes` (`repos/{dir}.md`), any `## Feedback from a person` in `history.md`, then `git diff --stat origin/{base}...HEAD` and skim the diff.
 2. Read only the frontmatter `use when:` line of each lens in `stages/05_review/lenses/`.
-3. Pick every lens whose `use when` this change meets. `code` always sits. Fewer, sharper seats beat a full bench: a one-line copy fix needs `code` alone; a new form with an API call may need `code`, `security`, `ui-ux`, `accessibility` and `tests`.
+3. Pick every lens whose `use when` this change meets. `code` always sits, and so does every lens the profile requires for this kind of change or a person's feedback asks for. Fewer, sharper seats beat a full bench: a one-line copy fix needs `code` alone; a new form with an API call may need `code`, `security`, `ui-ux`, `accessibility` and `tests`.
 4. Write `tasks/{id}/05_review/panel.md`: one line per seat, `- <lens>: <why this change needs it>`, then stop. No handoff.
 
 ## Seat
